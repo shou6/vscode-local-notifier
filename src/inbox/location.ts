@@ -26,16 +26,16 @@ export interface LocationInput {
   workspaceStorage: boolean;
 }
 
-/**
 /** 定期的な確認の間隔。通知の遅れの目安（2 秒）に合わせる */
 export const POLL_INTERVAL_MS = 2000;
 
 /**
  * 変更の知らせに加えて、定期的にも確認する受信箱か。
- * Dev Container の受信箱では、コンテナの中の変更の知らせが VS Code に届かなかった（検証 V2）。
+ * リモートに接続したウィンドウでは、受信箱の変更の知らせが拡張に届かなかった。
+ * コンテナの中の受信箱（検証 V2）も、Windows 側の受信箱（WSL のウィンドウで確認）も同じ。
  */
-export function needsPolling(location: InboxLocation, _remoteName: string | undefined): boolean {
-  return location.kind === 'workspace';
+export function needsPolling(location: InboxLocation, remoteName: string | undefined): boolean {
+  return location.kind === 'workspace' || remoteName !== undefined;
 }
 
 /**
