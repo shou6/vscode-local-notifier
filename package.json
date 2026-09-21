@@ -2,12 +2,12 @@
   "name": "vscode-local-notifier",
   "displayName": "Local Notifier for VS Code",
   "description": "%description%",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "publisher": "shou6",
   "license": "MIT",
   "icon": "resources/icon.png",
   "galleryBanner": {
-    "color": "#1F2937",
+    "color": "#162E68",
     "theme": "dark"
   },
   "homepage": "https://github.com/shou6/vscode-local-notifier#readme",
@@ -25,7 +25,21 @@
   "categories": [
     "Other"
   ],
-  "keywords": [],
+  "keywords": [
+    "notification",
+    "notifications",
+    "toast",
+    "desktop notification",
+    "hook",
+    "hooks",
+    "ai agent",
+    "agent",
+    "claude code",
+    "devcontainer",
+    "dev container",
+    "wsl",
+    "windows"
+  ],
   "extensionKind": [
     "ui"
   ],
