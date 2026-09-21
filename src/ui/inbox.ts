@@ -1,6 +1,12 @@
 import { randomUUID } from 'crypto';
 import * as vscode from 'vscode';
-import { DEVCONTAINER_INBOX, InboxLocation, inboxLocations } from '../inbox/location';
+import {
+  DEVCONTAINER_INBOX,
+  InboxLocation,
+  inboxLocations,
+  needsPolling,
+  POLL_INTERVAL_MS,
+} from '../inbox/location';
 import { InboxFileSystem, InboxProcessor } from '../inbox/processor';
 import { Notification } from '../message/types';
 
@@ -9,6 +15,8 @@ export interface WatchedInbox {
   uri: vscode.Uri;
   /** 通知に project が無い時に補うプロジェクト名 */
   project?: string;
+  /** 変更の知らせに加えて、定期的にも確認するか */
+  poll: boolean;
 }
 
 /** 受信箱を無視させるために置く .gitignore の中身 */
@@ -39,9 +47,9 @@ async function toWatchedInbox(
 ): Promise<WatchedInbox | undefined> {
   switch (location.kind) {
     case 'globalStorage':
-      return { uri: vscode.Uri.joinPath(globalStorageUri, 'inbox') };
+      return { uri: vscode.Uri.joinPath(globalStorageUri, 'inbox'), poll: needsPolling(location) };
     case 'path':
-      return { uri: vscode.Uri.file(location.path) };
+      return { uri: vscode.Uri.file(location.path), poll: needsPolling(location) };
     case 'workspace': {
       const folder = folders[location.folderIndex];
       const devcontainer = vscode.Uri.joinPath(folder.uri, DEVCONTAINER_INBOX[0]);
@@ -52,6 +60,7 @@ async function toWatchedInbox(
       return {
         uri: vscode.Uri.joinPath(folder.uri, ...DEVCONTAINER_INBOX),
         project: location.project,
+        poll: needsPolling(location),
       };
     }
   }
@@ -60,6 +69,7 @@ async function toWatchedInbox(
 /**
  * 受信箱を見張り、届いたファイルを通知にする。戻り値を dispose すると見張りをやめる。
  * 起動時に溜まっていたファイルも処理する（古いものは通知せずに消える）。
+ * 変更の知らせが届かない受信箱は、定期的にも確認する。
  */
 export async function watchInboxes(
   inboxes: WatchedInbox[],
@@ -91,6 +101,10 @@ export async function watchInboxes(
     };
     disposables.push(watcher, watcher.onDidCreate(onFile), watcher.onDidChange(onFile));
     void processor.processAll();
+    if (inbox.poll) {
+      const timer = setInterval(() => void processor.processAll(), POLL_INTERVAL_MS);
+      disposables.push({ dispose: () => clearInterval(timer) });
+    }
   }
   return vscode.Disposable.from(...disposables);
 }

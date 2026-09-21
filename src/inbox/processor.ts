@@ -24,10 +24,20 @@ export interface InboxProcessorOptions {
 
 /** 受信箱のファイルを通知にする */
 export class InboxProcessor {
+  /** 実行中の processAll。定期的な確認が重なった時は、これを返して重ねない */
+  private running: Promise<void> | undefined;
+
   constructor(private readonly options: InboxProcessorOptions) {}
 
   /** 受信箱にある候補をすべて処理する */
-  async processAll(): Promise<void> {
+  processAll(): Promise<void> {
+    this.running ??= this.processAllOnce().finally(() => {
+      this.running = undefined;
+    });
+    return this.running;
+  }
+
+  private async processAllOnce(): Promise<void> {
     let names: string[];
     try {
       names = await this.options.fs.list();

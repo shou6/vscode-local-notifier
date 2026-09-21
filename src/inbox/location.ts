@@ -27,12 +27,15 @@ export interface LocationInput {
  * ローカルの受信箱（ローカルと WSL の送り手が書く）はどのウィンドウでも見張る。
  * Dev Container に接続中は、加えて各ワークスペースフォルダの .devcontainer の下も見張る。
  */
-/** 定期的な確認の間隔 */
-export const POLL_INTERVAL_MS = 0;
+/** 定期的な確認の間隔。通知の遅れの目安（2 秒）に合わせる */
+export const POLL_INTERVAL_MS = 2000;
 
-/** 変更の知らせに加えて、定期的にも確認する受信箱か */
-export function needsPolling(_location: InboxLocation): boolean {
-  throw new Error('not implemented');
+/**
+ * 変更の知らせに加えて、定期的にも確認する受信箱か。
+ * Dev Container の受信箱では、コンテナの中の変更の知らせが VS Code に届かなかった（検証 V2）。
+ */
+export function needsPolling(location: InboxLocation): boolean {
+  return location.kind === 'workspace';
 }
 
 export function inboxLocations(input: LocationInput): InboxLocation[] {
