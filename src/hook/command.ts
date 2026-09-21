@@ -34,10 +34,19 @@ export type HookScope = 'workspace' | 'all';
 
 /** 今の環境で選べる届け先。先頭が既定 */
 export function availableScopes(
-  _remoteName: string | undefined,
-  _workspaceStorage: boolean
+  remoteName: string | undefined,
+  workspaceStorage: boolean
 ): HookScope[] {
-  throw new Error('not implemented');
+  switch (remoteName) {
+    case undefined:
+    case 'wsl':
+      return workspaceStorage ? ['workspace', 'all'] : ['all'];
+    case 'dev-container':
+      // コンテナの中から Windows 側の受信箱には書けない
+      return ['workspace'];
+    default:
+      return [];
+  }
 }
 
 /** Dev Container と WSL の中は Linux なので bash だけにする */

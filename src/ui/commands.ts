@@ -1,5 +1,12 @@
 import * as vscode from 'vscode';
-import { availableShells, hookCommand, hookTarget, Shell } from '../hook/command';
+import {
+  availableScopes,
+  availableShells,
+  hookCommand,
+  HookScope,
+  hookTarget,
+  Shell,
+} from '../hook/command';
 import { resultMessage, testNotification } from '../message/testNotification';
 import { Presets } from '../message/preset';
 import { Notification } from '../message/types';
@@ -52,20 +59,44 @@ export async function copyHookCommand(
     );
     return;
   }
-  const local = inboxes.find((inbox) => inbox.project === undefined);
-  const devcontainer = inboxes.find((inbox) => inbox.project !== undefined);
-  const target = hookTarget(vscode.env.remoteName, local?.uri.fsPath ?? '', devcontainer?.uri.path);
-  if (target === undefined) {
+  const unsupported = (): void => {
     void vscode.window.showWarningMessage(
       vscode.l10n.t(
         'Hook commands are available for local folders, WSL, and Dev Containers that have a .devcontainer folder.'
       )
     );
+  };
+  const scopes = availableScopes(
+    vscode.env.remoteName,
+    inboxes.some((inbox) => inbox.kind === 'workspaceStorage')
+  );
+  if (scopes.length === 0) {
+    unsupported();
     return;
   }
 
   const payload = await pickPayload(presets);
   if (payload === undefined) {
+    return;
+  }
+  const scope = await pickScope(scopes);
+  if (scope === undefined) {
+    return;
+  }
+  const inbox = inboxes.find((candidate) =>
+    scope === 'all'
+      ? candidate.kind === 'globalStorage' || candidate.kind === 'path'
+      : candidate.kind === 'workspaceStorage' || candidate.kind === 'workspace'
+  );
+  const target =
+    inbox &&
+    hookTarget(
+      vscode.env.remoteName,
+      inbox.uri.fsPath,
+      inbox.kind === 'workspace' ? inbox.uri.path : undefined
+    );
+  if (target === undefined) {
+    unsupported();
     return;
   }
   const shell = await pickShell(availableShells(target));
@@ -128,4 +159,32 @@ export function warnUnknownPreset(name: string): void {
       name
     )
   );
+}
+
+/** 届け先が 1 つだけなら聞かずにそれを使う */
+async function pickScope(scopes: HookScope[]): Promise<HookScope | undefined> {
+  if (scopes.length === 1) {
+    return scopes[0];
+  }
+  const items = scopes.map((scope) =>
+    scope === 'workspace'
+      ? {
+          label: vscode.l10n.t('This workspace only'),
+          detail: vscode.l10n.t(
+            'For hooks in the project settings. Notifications arrive while this workspace is open, and presets in the workspace settings apply.'
+          ),
+          scope,
+        }
+      : {
+          label: vscode.l10n.t('All workspaces'),
+          detail: vscode.l10n.t(
+            'For hooks in your user settings. Any open window shows the notification with the presets in your user settings.'
+          ),
+          scope,
+        }
+  );
+  const picked = await vscode.window.showQuickPick(items, {
+    placeHolder: vscode.l10n.t('Select where the hook is configured'),
+  });
+  return picked?.scope;
 }

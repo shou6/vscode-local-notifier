@@ -27,10 +27,6 @@ export interface LocationInput {
 }
 
 /**
- * 見張る受信箱を決める。
- * ローカルの受信箱（ローカルと WSL の送り手が書く）はどのウィンドウでも見張る。
- * Dev Container に接続中は、加えて各ワークスペースフォルダの .devcontainer の下も見張る。
- */
 /** 定期的な確認の間隔。通知の遅れの目安（2 秒）に合わせる */
 export const POLL_INTERVAL_MS = 2000;
 
@@ -42,10 +38,23 @@ export function needsPolling(location: InboxLocation): boolean {
   return location.kind === 'workspace';
 }
 
+/**
+ * 見張る受信箱を決める。
+ * すべてのワークスペース用の受信箱（ユーザー単位の hook が書く）は、どのウィンドウでも見張る。
+ * 加えて、このワークスペース用の受信箱を見張る。ローカルと WSL はワークスペースごとの保存フォルダの下、
+ * Dev Container は各フォルダの .devcontainer の下。そのワークスペースのウィンドウだけが処理するので、
+ * ワークスペースの設定に書いた通知の定義が確実に効く。
+ */
 export function inboxLocations(input: LocationInput): InboxLocation[] {
   const inboxPath = input.inboxPath.trim();
   const local: InboxLocation =
     inboxPath === '' ? { kind: 'globalStorage' } : { kind: 'path', path: inboxPath };
+  if (input.remoteName === undefined || input.remoteName === 'wsl') {
+    const project = input.folders[0];
+    return input.workspaceStorage && project !== undefined
+      ? [local, { kind: 'workspaceStorage', project }]
+      : [local];
+  }
   if (input.remoteName !== 'dev-container') {
     return [local];
   }

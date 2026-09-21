@@ -18,5 +18,10 @@
   "Custom text": "文面を直接書く",
   "Write the title and message in the command": "タイトルと本文をコマンドの中に書く",
   "Select the notification to send from the hook": "hook から送る通知を選んでください",
-  "Unknown notification preset \"{0}\". Define it in the \"localNotifier.presets\" setting.": "通知の定義「{0}」がありません。設定「localNotifier.presets」で定義してください。"
+  "Unknown notification preset \"{0}\". Define it in the \"localNotifier.presets\" setting.": "通知の定義「{0}」がありません。設定「localNotifier.presets」で定義してください。",
+  "This workspace only": "このワークスペースだけ",
+  "For hooks in the project settings. Notifications arrive while this workspace is open, and presets in the workspace settings apply.": "プロジェクトの設定に書く hook 向け。このワークスペースを開いている間に届き、ワークスペースの設定の定義が効く。",
+  "All workspaces": "すべてのワークスペース",
+  "For hooks in your user settings. Any open window shows the notification with the presets in your user settings.": "ユーザーの設定に書く hook 向け。開いているどれかのウィンドウが、ユーザーの設定の定義で通知する。",
+  "Select where the hook is configured": "hook を書く場所を選んでください"
 }

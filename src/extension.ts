@@ -39,7 +39,7 @@ export function activate(context: vscode.ExtensionContext): LocalNotifierApi {
       if (!vscode.workspace.getConfiguration('localNotifier').get<boolean>('enabled', true)) {
         return;
       }
-      inboxes = await resolveInboxes(context.globalStorageUri);
+      inboxes = await resolveInboxes(context.globalStorageUri, context.storageUri);
       presets = mergePresets(
         builtInPresets(vscode.l10n.t),
         vscode.workspace.getConfiguration('localNotifier').get<unknown>('presets')

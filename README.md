@@ -18,17 +18,24 @@ You don't need a separate app, port, or token. A hook writes a small JSON file t
 1. Open a folder locally, in WSL, or in a Dev Container.
 2. Run **Local Notifier: Copy Hook Command** from the Command Palette (`Ctrl+Shift+P`).
 3. Select the notification to send, such as `done` or `waiting`.
-4. Paste the command into your tool's hook settings.
+4. Select where you configure the hook: **This workspace only** or **All workspaces**.
+5. Paste the command into your tool's hook settings.
 
-To change the text later, edit the `localNotifier.presets` setting. You don't need to touch the hook.
+To change the text later, edit the `localNotifier.presets` setting. You don't need to touch the hook. Changes to the settings take effect right away.
+
+After you update the extension, reload every open window. A window that still runs an older version may drop notifications in a newer format.
 
 ## Where the inbox is
 
-| Where your tool runs | Inbox |
-| --- | --- |
-| Windows (local) | The storage folder that Visual Studio Code provides for this extension |
-| WSL | Same as local. The command converts the path with `wslpath` |
-| Dev Container | `.devcontainer/.local-notifier/inbox` in your project |
+Each window watches an inbox for its own workspace, and an inbox shared by all windows.
+
+| Where your tool runs | This workspace only | All workspaces |
+| --- | --- | --- |
+| Windows (local) | The workspace storage folder that Visual Studio Code provides | The global storage folder that Visual Studio Code provides |
+| WSL | Same as local. The command converts the path with `wslpath` | Same as local |
+| Dev Container | `.devcontainer/.local-notifier/inbox` in your project | Not available |
+
+Use **This workspace only** for hooks in the project settings. Only the windows of that workspace handle it. Presets in the workspace settings apply. Use **All workspaces** for hooks in your user settings. Any open window handles the notification with the presets in your user settings.
 
 In a Dev Container, the extension also adds a `.gitignore` next to the inbox. It keeps the inbox out of Git.
 

@@ -14,6 +14,8 @@ import { Notification } from '../message/types';
 /** 見張っている受信箱 1 つ */
 export interface WatchedInbox {
   uri: vscode.Uri;
+  /** どの種類の受信箱か */
+  kind: InboxLocation['kind'];
   /** 通知に project が無い時に補うプロジェクト名 */
   project?: string;
   /** 変更の知らせに加えて、定期的にも確認するか */
@@ -24,17 +26,20 @@ export interface WatchedInbox {
 const GITIGNORE = '*\n';
 
 /** 今の設定とワークスペースから、見張る受信箱の場所を決める */
-export async function resolveInboxes(globalStorageUri: vscode.Uri): Promise<WatchedInbox[]> {
+export async function resolveInboxes(
+  globalStorageUri: vscode.Uri,
+  storageUri: vscode.Uri | undefined
+): Promise<WatchedInbox[]> {
   const folders = vscode.workspace.workspaceFolders ?? [];
   const locations = inboxLocations({
     remoteName: vscode.env.remoteName,
     folders: folders.map((folder) => folder.name),
     inboxPath: vscode.workspace.getConfiguration('localNotifier').get<string>('inboxPath', ''),
-    workspaceStorage: false,
+    workspaceStorage: storageUri !== undefined,
   });
   const inboxes: WatchedInbox[] = [];
   for (const location of locations) {
-    const inbox = await toWatchedInbox(location, globalStorageUri, folders);
+    const inbox = await toWatchedInbox(location, globalStorageUri, storageUri, folders);
     if (inbox) {
       inboxes.push(inbox);
     }
@@ -45,15 +50,20 @@ export async function resolveInboxes(globalStorageUri: vscode.Uri): Promise<Watc
 async function toWatchedInbox(
   location: InboxLocation,
   globalStorageUri: vscode.Uri,
+  storageUri: vscode.Uri | undefined,
   folders: readonly vscode.WorkspaceFolder[]
 ): Promise<WatchedInbox | undefined> {
+  const poll = needsPolling(location);
+  const kind = location.kind;
   switch (location.kind) {
     case 'globalStorage':
-      return { uri: vscode.Uri.joinPath(globalStorageUri, 'inbox'), poll: needsPolling(location) };
+      return { uri: vscode.Uri.joinPath(globalStorageUri, 'inbox'), kind, poll };
     case 'path':
-      return { uri: vscode.Uri.file(location.path), poll: needsPolling(location) };
+      return { uri: vscode.Uri.file(location.path), kind, poll };
     case 'workspaceStorage':
-      return undefined;
+      return storageUri === undefined
+        ? undefined
+        : { uri: vscode.Uri.joinPath(storageUri, 'inbox'), kind, project: location.project, poll };
     case 'workspace': {
       const folder = folders[location.folderIndex];
       const devcontainer = vscode.Uri.joinPath(folder.uri, DEVCONTAINER_INBOX[0]);
@@ -63,18 +73,14 @@ async function toWatchedInbox(
       }
       return {
         uri: vscode.Uri.joinPath(folder.uri, ...DEVCONTAINER_INBOX),
+        kind,
         project: location.project,
-        poll: needsPolling(location),
+        poll,
       };
     }
   }
 }
 
-/**
- * 受信箱を見張り、届いたファイルを通知にする。戻り値を dispose すると見張りをやめる。
- * 起動時に溜まっていたファイルも処理する（古いものは通知せずに消える）。
- * 変更の知らせが届かない受信箱は、定期的にも確認する。
- */
 /** 受信箱の処理に渡すもの */
 export interface WatchOptions {
   notify: (notification: Notification) => Promise<void>;
@@ -82,6 +88,11 @@ export interface WatchOptions {
   onUnknownPreset: (name: string) => void;
 }
 
+/**
+ * 受信箱を見張り、届いたファイルを通知にする。戻り値を dispose すると見張りをやめる。
+ * 起動時に溜まっていたファイルも処理する（古いものは通知せずに消える）。
+ * 変更の知らせが届かない受信箱は、定期的にも確認する。
+ */
 export async function watchInboxes(
   inboxes: WatchedInbox[],
   { notify, presets, onUnknownPreset }: WatchOptions
