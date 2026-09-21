@@ -21,7 +21,8 @@ You don't need a separate app, port, or token. A hook writes a small JSON file t
 2. Run **Local Notifier: Copy Hook Command** from the Command Palette (`Ctrl+Shift+P`).
 3. Select the notification to send, such as `done` or `waiting`.
 4. Select where you configure the hook: **This workspace only** or **All workspaces**.
-5. Paste the command into your tool's hook settings.
+5. Select where you will paste it. For a settings file such as `settings.json`, select **Settings file (JSON)**. It copies a JSON string with the quotes escaped.
+6. Paste it into your tool's hook settings.
 
 To change the text later, edit the `localNotifier.presets` setting. You don't need to touch the hook. Changes to the settings take effect right away.
 
@@ -77,7 +78,7 @@ Override or add presets in `localNotifier.presets`. For a built-in name, only th
 
 ## Example: Claude Code in a Dev Container
 
-Add the copied command to `hooks` in `.claude/settings.local.json`. In JSON, escape the double quotes in the command.
+Copy the command with **Settings file (JSON)**. Paste it as the value of `"command"` in `.claude/settings.local.json`.
 
 ```json
 {

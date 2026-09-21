@@ -100,6 +100,6 @@ function bashInboxPath(target: HookTarget): string {
 }
 
 /** 設定ファイル（JSON）の文字列として貼れる形。前後を二重引用符で囲み、中の引用符とバックスラッシュをエスケープする */
-export function asJsonString(_command: string): string {
-  throw new Error('not implemented');
+export function asJsonString(command: string): string {
+  return JSON.stringify(command);
 }

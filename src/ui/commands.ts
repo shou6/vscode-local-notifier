@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import {
+  asJsonString,
   availableScopes,
   availableShells,
   hookCommand,
@@ -112,10 +113,44 @@ export async function copyHookCommand(
   if (shell === undefined) {
     return;
   }
-  await vscode.env.clipboard.writeText(hookCommand(target, shell, payload));
+  const pasteInto = await pickPasteTarget();
+  if (pasteInto === undefined) {
+    return;
+  }
+  const command = hookCommand(target, shell, payload);
+  await vscode.env.clipboard.writeText(pasteInto === 'json' ? asJsonString(command) : command);
   void vscode.window.showInformationMessage(
-    vscode.l10n.t("Copied the hook command. Paste it into your tool's hook settings.")
+    pasteInto === 'json'
+      ? vscode.l10n.t(
+          'Copied the hook command as a JSON string, quotes included. Paste it as the value of "command" in the settings file.'
+        )
+      : vscode.l10n.t('Copied the hook command. Paste it into a terminal or a shell script.')
   );
+}
+
+/**
+ * コマンドを貼る場所を選ぶ。hook は多くのツールで JSON の設定ファイルに書くので、そちらを既定にする。
+ * JSON の文字列にしないまま貼ると、コマンドの中の二重引用符で設定ファイルが壊れる。
+ */
+async function pickPasteTarget(): Promise<'json' | 'shell' | undefined> {
+  const items: (vscode.QuickPickItem & { target: 'json' | 'shell' })[] = [
+    {
+      label: vscode.l10n.t('Settings file (JSON)'),
+      detail: vscode.l10n.t(
+        'Copies a JSON string with the quotes escaped. Paste it as the value of "command".'
+      ),
+      target: 'json',
+    },
+    {
+      label: vscode.l10n.t('Terminal or shell script'),
+      detail: vscode.l10n.t('Copies the command as it is.'),
+      target: 'shell',
+    },
+  ];
+  const picked = await vscode.window.showQuickPick(items, {
+    placeHolder: vscode.l10n.t('Select where you will paste the command'),
+  });
+  return picked?.target;
 }
 
 /** シェルが 1 つだけなら聞かずにそれを使う */

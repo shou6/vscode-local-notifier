@@ -21,7 +21,8 @@ AI エージェントなどのツールが作業を終えた時に、Windows の
 2. コマンドパレット（`Ctrl+Shift+P`）から **Local Notifier: hook のコマンドをコピー** を実行する
 3. `done` や `waiting` など、送る通知を選ぶ
 4. hook を書く場所に合わせて、**このワークスペースだけ** か **すべてのワークスペース** を選ぶ
-5. ツールの hook の設定にコマンドを貼り付ける
+5. 貼り付ける場所を選ぶ。`settings.json` などの設定ファイルに貼るなら **設定ファイル（JSON）** を選ぶ。引用符をエスケープした JSON の文字列がコピーされる
+6. ツールの hook の設定に貼り付ける
 
 後で文面を変える時は、設定 `localNotifier.presets` を書き換える。hook を触る必要はない。設定の変更はすぐに反映される。
 
@@ -77,7 +78,7 @@ hook は、通知 1 件ごとに JSON のファイルを 1 つ書く。文面は
 
 ## 設定例：Dev Container の Claude Code
 
-コピーしたコマンドを `.claude/settings.local.json` の `hooks` に足す。JSON の中では、コマンドの二重引用符をエスケープする。
+**設定ファイル（JSON）** を選んでコマンドをコピーし、`.claude/settings.local.json` の `"command"` の値として貼り付ける。
 
 ```json
 {

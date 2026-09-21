@@ -10,7 +10,6 @@
   "Git Bash on Windows": "Windows の Git Bash",
   "Windows PowerShell": "Windows PowerShell",
   "Select the shell that runs your hook": "hook を実行するシェルを選んでください",
-  "Copied the hook command. Paste it into your tool's hook settings.": "hook のコマンドをコピーしました。ツールの hook の設定に貼り付けてください。",
   "Waiting for input": "入力を待っています",
   "The agent is waiting for your input.": "エージェントが入力を待っています。",
   "Stopped with an error": "エラーで停止しました",
@@ -47,5 +46,12 @@
   "Show Log": "ログを表示",
   "What happened to each notification file": "通知のファイルごとの処理の記録",
   "Local Notifier: Status": "Local Notifier：状態",
-  "Select an action": "操作を選んでください"
+  "Select an action": "操作を選んでください",
+  "Copied the hook command as a JSON string, quotes included. Paste it as the value of \"command\" in the settings file.": "hook のコマンドを、引用符を含む JSON の文字列としてコピーしました。設定ファイルの \"command\" の値として貼り付けてください。",
+  "Copied the hook command. Paste it into a terminal or a shell script.": "hook のコマンドをコピーしました。ターミナルかシェルスクリプトに貼り付けてください。",
+  "Settings file (JSON)": "設定ファイル（JSON）",
+  "Copies a JSON string with the quotes escaped. Paste it as the value of \"command\".": "引用符をエスケープした JSON の文字列をコピーします。\"command\" の値として貼り付けます。",
+  "Terminal or shell script": "ターミナルかシェルスクリプト",
+  "Copies the command as it is.": "コマンドをそのままコピーします。",
+  "Select where you will paste the command": "コマンドを貼り付ける場所を選んでください"
 }
