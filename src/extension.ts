@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { toastAppId } from './notify/appId';
+import { DEFAULT_TOAST_OPTIONS } from './notify/format';
 import { createNotifier } from './notify/notifier';
 import { nodeProcessRunner } from './platform/process';
 import { builtInPresets, mergePresets, Presets } from './message/preset';
@@ -22,7 +23,8 @@ export function activate(context: vscode.ExtensionContext): LocalNotifierApi {
   const notifier = createNotifier(
     process.platform,
     nodeProcessRunner,
-    toastAppId(vscode.env.appName)
+    toastAppId(vscode.env.appName),
+    () => DEFAULT_TOAST_OPTIONS
   );
   const notify = notifyAndReport(notifier);
 

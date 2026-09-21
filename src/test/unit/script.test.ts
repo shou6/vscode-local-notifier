@@ -11,6 +11,10 @@ suite('TOAST_SCRIPT', () => {
     assert.match(TOAST_SCRIPT, /\$ProgressPreference\s*=\s*'SilentlyContinue'/);
   });
 
+  test('表示時間を、通知の要素の duration 属性に入れる', () => {
+    assert.ok(TOAST_SCRIPT.includes("SetAttribute('duration', [string]$in.duration)"));
+  });
+
   test('標準入力を UTF-8 として読む（日本語が化けないように）', () => {
     assert.match(TOAST_SCRIPT, /InputEncoding\s*=\s*\[System\.Text\.Encoding\]::UTF8/);
   });
@@ -29,6 +33,7 @@ suite('toastInput', () => {
       title: '"引用符" $HOME `x`',
       body: "本文 <tag> & 'single'\n2 行目",
       attribution: 'app · CI',
+      duration: 'long' as const,
     };
     const parsed = JSON.parse(toastInput(content, 'Microsoft.VisualStudioCode')) as unknown;
     assert.deepStrictEqual(parsed, { appId: 'Microsoft.VisualStudioCode', ...content });

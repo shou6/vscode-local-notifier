@@ -1,6 +1,6 @@
 import { Notification } from '../message/types';
 import { ProcessRunner } from '../platform/process';
-import { formatToast } from './format';
+import { formatToast, ToastOptions } from './format';
 import { encodePowerShellCommand, TOAST_SCRIPT, toastInput } from './script';
 
 export type NotifyResult =
@@ -13,8 +13,14 @@ export interface Notifier {
   notify(notification: Notification): Promise<NotifyResult>;
 }
 
-export function createNotifier(platform: string, runner: ProcessRunner, appId: string): Notifier {
-  return platform === 'win32' ? windowsToastNotifier(runner, appId) : unsupportedNotifier;
+/** options は通知のたびに呼ぶ。設定の変更が次の通知から効く */
+export function createNotifier(
+  platform: string,
+  runner: ProcessRunner,
+  appId: string,
+  options: () => ToastOptions
+): Notifier {
+  return platform === 'win32' ? windowsToastNotifier(runner, appId, options) : unsupportedNotifier;
 }
 
 const unsupportedNotifier: Notifier = {
@@ -22,7 +28,11 @@ const unsupportedNotifier: Notifier = {
 };
 
 /** PowerShell から WinRT のトーストを出す。VSIX にネイティブ物を入れずに済む */
-function windowsToastNotifier(runner: ProcessRunner, appId: string): Notifier {
+function windowsToastNotifier(
+  runner: ProcessRunner,
+  appId: string,
+  options: () => ToastOptions
+): Notifier {
   const args = [
     '-NoProfile',
     '-NonInteractive',
@@ -31,7 +41,7 @@ function windowsToastNotifier(runner: ProcessRunner, appId: string): Notifier {
   ];
   return {
     async notify(notification) {
-      const input = toastInput(formatToast(notification), appId);
+      const input = toastInput(formatToast(notification, options()), appId);
       try {
         const result = await runner.run('powershell.exe', args, input);
         if (result.exitCode === 0) {
