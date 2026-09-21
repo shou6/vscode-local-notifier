@@ -174,6 +174,44 @@ suite('InboxProcessor.processFile', () => {
     assert.strictEqual(first.shown.length + second.shown.length, 1);
   });
 
+  test('同じウィンドウで同じファイルの処理が重なっても、通知は 1 回だけ（変更の知らせが 2 回届いた時）', async () => {
+    // 実機では、名前の変更が 2 回とも成功したことがあった。同じ動きをするフェイクで確かめる
+    const inbox = fakeInbox({ 'a.json': { text: VALID, mtimeMs: NOW } });
+    const file = inbox.files.get('a.json');
+    inbox.rename = (from, to) => {
+      inbox.files.delete(from);
+      inbox.files.set(to, file as FakeFile);
+      return Promise.resolve();
+    };
+    const lines: string[] = [];
+    const shown: Notification[] = [];
+    const target = new InboxProcessor({
+      fs: inbox,
+      windowId: 'w1',
+      now: () => NOW,
+      notify: (notification) => {
+        shown.push(notification);
+        return Promise.resolve();
+      },
+      log: (line) => lines.push(line),
+    });
+    await Promise.all([
+      target.processFile('a.json', 'event'),
+      target.processFile('a.json', 'event'),
+    ]);
+    assert.strictEqual(shown.length, 1);
+    assert.ok(lines.includes('event a.json: skipped (already in progress)'), lines.join(' | '));
+  });
+
+  test('処理が終わった後に同じ名前のファイルが届けば、また処理する', async () => {
+    const inbox = fakeInbox({ 'a.json': { text: VALID, mtimeMs: NOW } });
+    const { target, shown } = processor(inbox);
+    await target.processFile('a.json');
+    inbox.files.set('a.json', { text: VALID, mtimeMs: NOW });
+    await target.processFile('a.json');
+    assert.strictEqual(shown.length, 2);
+  });
+
   test('通知に失敗しても例外にしない', async () => {
     const inbox = fakeInbox({ 'a.json': { text: VALID, mtimeMs: NOW } });
     const target = new InboxProcessor({
