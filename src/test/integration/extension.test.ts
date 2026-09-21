@@ -41,8 +41,10 @@ suite('Extension', () => {
     );
   });
 
-  test('Hello World を実行しても例外にならない', async () => {
-    await vscode.extensions.getExtension(extensionId())?.activate();
-    await vscode.commands.executeCommand('vscodeLocalNotifier.helloWorld');
+  test('ローカル側（UI 側）で動く拡張として宣言している', () => {
+    const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')) as {
+      extensionKind?: string[];
+    };
+    assert.deepStrictEqual(manifest.extensionKind, ['ui']);
   });
 });

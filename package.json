@@ -26,7 +26,12 @@
     "Other"
   ],
   "keywords": [],
-  "activationEvents": [],
+  "extensionKind": [
+    "ui"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "l10n": "./l10n",
   "files": [
@@ -42,9 +47,9 @@
   "contributes": {
     "commands": [
       {
-        "command": "vscodeLocalNotifier.helloWorld",
-        "title": "%command.helloWorld%",
-        "category": "Local Notifier for VS Code"
+        "command": "localNotifier.sendTestNotification",
+        "title": "%command.sendTestNotification%",
+        "category": "Local Notifier"
       }
     ]
   },

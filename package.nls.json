@@ -1,4 +1,4 @@
 {
-  "description": "A Visual Studio Code extension.",
-  "command.helloWorld": "Hello World"
+  "description": "Desktop notifications for AI agents and other tools that can run hooks, including inside Dev Containers.",
+  "command.sendTestNotification": "Send Test Notification"
 }

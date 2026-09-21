@@ -1,13 +1,21 @@
 import * as vscode from 'vscode';
-import { helloMessage } from './hello';
+import { toastAppId } from './notify/appId';
+import { createNotifier } from './notify/notifier';
+import { nodeProcessRunner } from './platform/process';
+import { sendTestNotification } from './ui/commands';
 
 /** エントリポイント。登録だけを行い、ロジックは各モジュールに置く */
 export function activate(context: vscode.ExtensionContext): void {
+  const notifier = createNotifier(
+    process.platform,
+    nodeProcessRunner,
+    toastAppId(vscode.env.appName)
+  );
+
   context.subscriptions.push(
-    vscode.commands.registerCommand('vscodeLocalNotifier.helloWorld', () => {
-      const folderName = vscode.workspace.workspaceFolders?.[0]?.name;
-      void vscode.window.showInformationMessage(helloMessage(vscode.l10n.t, folderName));
-    })
+    vscode.commands.registerCommand('localNotifier.sendTestNotification', () =>
+      sendTestNotification(notifier)
+    )
   );
 }
 

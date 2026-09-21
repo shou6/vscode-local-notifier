@@ -1,4 +1,4 @@
 {
-  "description": "Visual Studio Code の拡張機能。",
-  "command.helloWorld": "Hello World"
+  "description": "AI エージェントなど hook を掛けられるツールから、Dev Container の中からでもデスクトップ通知を出す。",
+  "command.sendTestNotification": "テスト通知を送る"
 }
