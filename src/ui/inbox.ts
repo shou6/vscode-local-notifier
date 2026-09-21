@@ -140,6 +140,10 @@ export async function watchInboxes(
     };
     disposables.push(watcher, watcher.onDidCreate(onFile), watcher.onDidChange(onFile));
     void processor.processAll('startup');
+    // ファイル監視は、作ってから動き出すまでに時間がかかる。その間に届いたファイルは知らせが来ないので、
+    // 少し待ってからもう一度まとめて確認する（見張りを始めた直後に書いたファイルを取りこぼした）
+    const catchUp = setTimeout(() => void processor.processAll('startup'), POLL_INTERVAL_MS);
+    disposables.push({ dispose: () => clearTimeout(catchUp) });
     if (inbox.poll) {
       const timer = setInterval(() => void processor.processAll('poll'), POLL_INTERVAL_MS);
       disposables.push({ dispose: () => clearInterval(timer) });
