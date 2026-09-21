@@ -36,6 +36,11 @@ export type Trigger = 'event' | 'poll' | 'startup';
 export class InboxProcessor {
   /** 実行中の processAll。定期的な確認が重なった時は、これを返して重ねない */
   private running: Promise<void> | undefined;
+  /**
+   * 処理中のファイル名。同じウィンドウで同じファイルの処理を重ねない。
+   * 変更の知らせが 2 回届くことがあり、名前の変更による確保だけでは重複を防げなかった。
+   */
+  private readonly inProgress = new Set<string>();
 
   constructor(private readonly options: InboxProcessorOptions) {}
 
@@ -67,9 +72,22 @@ export class InboxProcessor {
     if (!isCandidate(name)) {
       return;
     }
-    const { fs, windowId, project, now, notify, presets, onUnknownPreset } = this.options;
     const log = (message: string): void =>
       this.options.log?.(trigger + ' ' + name + ': ' + message);
+    if (this.inProgress.has(name)) {
+      log('skipped (already in progress)');
+      return;
+    }
+    this.inProgress.add(name);
+    try {
+      await this.claimAndNotify(name, log);
+    } finally {
+      this.inProgress.delete(name);
+    }
+  }
+
+  private async claimAndNotify(name: string, log: (message: string) => void): Promise<void> {
+    const { fs, windowId, project, now, notify, presets, onUnknownPreset } = this.options;
     const claimed = claimedName(name, windowId);
     let owned = false;
     try {
