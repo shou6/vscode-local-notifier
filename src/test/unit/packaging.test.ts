@@ -154,6 +154,13 @@ suite('Dependabot', () => {
     assert.match(read(), /dependency-name:\s*["']?@types\/vscode["']?/);
   });
 
+  test('typescript のメジャー版は上げない（typescript-eslint が対応するまで npm ci が失敗する）', () => {
+    assert.match(
+      read(),
+      /dependency-name:\s*["']?typescript["']?\s*\n\s*update-types:\s*\[\s*["']version-update:semver-major["']\s*\]/
+    );
+  });
+
   test('コミットメッセージの接頭辞をコミット規約（chore）に合わせている', () => {
     const config = read();
     assert.match(config, /prefix:\s*["']?chore["']?/);
