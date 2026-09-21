@@ -62,7 +62,7 @@ export class InboxProcessor {
     if (!isCandidate(name)) {
       return;
     }
-    const { fs, windowId, project, now, notify } = this.options;
+    const { fs, windowId, project, now, notify, presets, onUnknownPreset } = this.options;
     const claimed = claimedName(name, windowId);
     try {
       const stat = await fs.stat(name);
@@ -70,7 +70,10 @@ export class InboxProcessor {
       if (stat.size > MAX_FILE_BYTES || isStale(stat.mtimeMs, now())) {
         return;
       }
-      const result = parseNotification(await fs.read(claimed));
+      const result = parseNotification(await fs.read(claimed), presets);
+      if (!result.ok && result.reason === 'unknown-preset') {
+        onUnknownPreset?.(result.preset);
+      }
       if (result.ok) {
         const notification = result.notification;
         if (notification.project === undefined && project !== undefined) {

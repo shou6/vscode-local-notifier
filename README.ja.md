@@ -17,7 +17,10 @@ AI エージェントなどのツールが作業を終えた時に、Windows の
 
 1. フォルダをローカル、WSL、Dev Container のいずれかで開く
 2. コマンドパレット（`Ctrl+Shift+P`）から **Local Notifier: hook のコマンドをコピー** を実行する
-3. ツールの hook の設定にコマンドを貼り付け、タイトルと本文を好みに書き換える
+3. `done` や `waiting` など、送る通知を選ぶ
+4. ツールの hook の設定にコマンドを貼り付ける
+
+後で文面を変える時は、設定 `localNotifier.presets` を書き換える。hook を触る必要はない。
 
 ## 受信箱の場所
 
@@ -31,15 +34,37 @@ Dev Container では、受信箱がリポジトリに入らないよう、拡張
 
 ## 通知の形式
 
-hook は、通知 1 件ごとに JSON のファイルを 1 つ書く。
+hook は、通知 1 件ごとに JSON のファイルを 1 つ書く。文面は、定義の名前で指定するか、直接書く。
 
 | 項目 | 必須 | 内容 |
 | --- | --- | --- |
-| `title` | 必須 | 通知のタイトル |
-| `message` | 必須 | 通知の本文 |
+| `preset` | 任意 | 定義の名前。定義の文面を使う |
+| `title` | `preset` が無ければ必須 | 通知のタイトル。定義を上書きする |
+| `message` | `preset` が無ければ必須 | 通知の本文。定義を上書きする |
 | `project` | 任意 | プロジェクト名。Dev Container では、省略するとワークスペースのフォルダ名になる |
-| `level` | 任意 | `info`、`success`、`warning`、`error` のいずれか。省略すると `info` |
+| `level` | 任意 | `info`、`success`、`warning`、`error` のいずれか。省略すると定義の値、それも無ければ `info` |
 | `source` | 任意 | ツールの名前。本文の下に表示する |
+
+## 通知の定義
+
+既定で 3 つの定義がある。文面は VS Code の表示言語に合わせて変わる。
+
+| 名前 | 用途 | 種類 |
+| --- | --- | --- |
+| `done` | 作業の完了 | `success` |
+| `waiting` | 入力や許可の待ち | `info` |
+| `error` | エラーでの停止 | `error` |
+
+設定 `localNotifier.presets` で、定義を上書きしたり足したりできる。既定と同じ名前なら、書いた項目だけが変わる。プロジェクト固有の文面は、ワークスペースの `.vscode/settings.json` に書く。
+
+```json
+{
+  "localNotifier.presets": {
+    "done": { "message": "ビルドとテストが通りました。" },
+    "review": { "title": "レビュー依頼", "message": "変更を確認してください。", "level": "warning" }
+  }
+}
+```
 
 ## 設定例：Dev Container の Claude Code
 
@@ -53,7 +78,7 @@ hook は、通知 1 件ごとに JSON のファイルを 1 つ書く。
         "hooks": [
           {
             "type": "command",
-            "command": "d='/workspace/.devcontainer/.local-notifier/inbox'; n=\"$(date +%s%N)-$$\"; printf '%s' '{\"title\":\"Claude Code\",\"message\":\"Task completed\",\"level\":\"success\",\"source\":\"Claude Code\"}' > \"$d/.tmp-$n.json\" && mv \"$d/.tmp-$n.json\" \"$d/$n.json\""
+            "command": "d='/workspace/.devcontainer/.local-notifier/inbox'; n=\"$(date +%s%N)-$$\"; printf '%s' '{\"preset\":\"done\"}' > \"$d/.tmp-$n.json\" && mv \"$d/.tmp-$n.json\" \"$d/$n.json\""
           }
         ]
       }
@@ -68,6 +93,7 @@ hook は、通知 1 件ごとに JSON のファイルを 1 つ書く。
 | --- | --- | --- |
 | `localNotifier.enabled` | `true` | 受信箱を見張り、デスクトップ通知を出す |
 | `localNotifier.inboxPath` | 空 | 既定の代わりにローカルの受信箱にするフォルダ |
+| `localNotifier.presets` | 空 | 上書きや追加をする通知の定義 |
 
 ## 動作環境
 

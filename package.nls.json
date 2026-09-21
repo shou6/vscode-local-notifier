@@ -3,5 +3,10 @@
   "command.sendTestNotification": "Send Test Notification",
   "config.enabled": "Watch the inbox and show desktop notifications.",
   "config.inboxPath": "Folder to use as the local inbox. Leave empty to use the extension's storage folder provided by VS Code.",
-  "command.copyHookCommand": "Copy Hook Command"
+  "command.copyHookCommand": "Copy Hook Command",
+  "config.presets": "Named notifications that a hook can send with `{\"preset\":\"<name>\"}`. The built-in `done`, `waiting`, and `error` can be overridden field by field, and new names can be added.",
+  "config.presets.title": "Title of the notification.",
+  "config.presets.message": "Body of the notification.",
+  "config.presets.level": "Kind of the notification.",
+  "config.presets.source": "Name of the tool, shown below the message."
 }

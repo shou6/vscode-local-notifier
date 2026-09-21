@@ -69,6 +69,39 @@
           "type": "string",
           "default": "",
           "description": "%config.inboxPath%"
+        },
+        "localNotifier.presets": {
+          "type": "object",
+          "default": {},
+          "markdownDescription": "%config.presets%",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "%config.presets.title%"
+              },
+              "message": {
+                "type": "string",
+                "description": "%config.presets.message%"
+              },
+              "level": {
+                "type": "string",
+                "enum": [
+                  "info",
+                  "success",
+                  "warning",
+                  "error"
+                ],
+                "description": "%config.presets.level%"
+              },
+              "source": {
+                "type": "string",
+                "description": "%config.presets.source%"
+              }
+            },
+            "additionalProperties": false
+          }
         }
       }
     }

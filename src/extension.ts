@@ -2,7 +2,13 @@ import * as vscode from 'vscode';
 import { toastAppId } from './notify/appId';
 import { createNotifier } from './notify/notifier';
 import { nodeProcessRunner } from './platform/process';
-import { copyHookCommand, notifyAndReport, sendTestNotification } from './ui/commands';
+import { builtInPresets, mergePresets, Presets } from './message/preset';
+import {
+  copyHookCommand,
+  notifyAndReport,
+  sendTestNotification,
+  warnUnknownPreset,
+} from './ui/commands';
 import { resolveInboxes, WatchedInbox, watchInboxes } from './ui/inbox';
 
 /** 統合テストから見張りの状態を確かめるための戻り値 */
@@ -21,6 +27,7 @@ export function activate(context: vscode.ExtensionContext): LocalNotifierApi {
   const notify = notifyAndReport(notifier);
 
   let inboxes: WatchedInbox[] = [];
+  let presets: Presets = builtInPresets(vscode.l10n.t);
   let watching: vscode.Disposable | undefined;
   /** 設定やワークスペースが変わったら見張り直す。前の見張り直しが終わってから次を行う */
   let restarting: Promise<void> = Promise.resolve();
@@ -33,7 +40,15 @@ export function activate(context: vscode.ExtensionContext): LocalNotifierApi {
         return;
       }
       inboxes = await resolveInboxes(context.globalStorageUri);
-      watching = await watchInboxes(inboxes, notify);
+      presets = mergePresets(
+        builtInPresets(vscode.l10n.t),
+        vscode.workspace.getConfiguration('localNotifier').get<unknown>('presets')
+      );
+      watching = await watchInboxes(inboxes, {
+        notify,
+        presets,
+        onUnknownPreset: warnUnknownPreset,
+      });
     }));
 
   context.subscriptions.push(
@@ -43,7 +58,7 @@ export function activate(context: vscode.ExtensionContext): LocalNotifierApi {
     }),
     vscode.commands.registerCommand('localNotifier.copyHookCommand', async () => {
       await restarting;
-      await copyHookCommand(inboxes);
+      await copyHookCommand(inboxes, presets);
     }),
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration('localNotifier')) {

@@ -62,6 +62,32 @@ suite('Extension', () => {
     assert.deepStrictEqual(remaining, []);
   });
 
+  test('定義の名前だけを書いたファイルも、見張りに拾われて消える', async () => {
+    const extension = vscode.extensions.getExtension<LocalNotifierApi>(extensionId());
+    assert.ok(extension);
+    const inboxes = await (await extension.activate()).inboxes();
+    const inbox = inboxes[0].uri;
+
+    const name = String(Date.now()) + '-preset.json';
+    await vscode.workspace.fs.writeFile(
+      vscode.Uri.joinPath(inbox, '.tmp-' + name),
+      new TextEncoder().encode('{"preset":"done"}')
+    );
+    await vscode.workspace.fs.rename(
+      vscode.Uri.joinPath(inbox, '.tmp-' + name),
+      vscode.Uri.joinPath(inbox, name)
+    );
+
+    const deadline = Date.now() + 10_000;
+    let remaining = true;
+    do {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      const entries = await vscode.workspace.fs.readDirectory(inbox);
+      remaining = entries.some(([entry]) => entry === name);
+    } while (remaining && Date.now() < deadline);
+    assert.strictEqual(remaining, false);
+  });
+
   test('ローカル側（UI 側）で動く拡張として宣言している', () => {
     const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')) as {
       extensionKind?: string[];

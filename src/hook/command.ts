@@ -1,5 +1,3 @@
-import { Notification } from '../message/types';
-
 export type Shell = 'bash' | 'powershell';
 
 /** hook が通知を書く先。inboxPath は hook が動く環境から見たパスではなく、拡張が知っているパス */
@@ -46,9 +44,12 @@ export function psQuote(value: string): string {
   return "'" + value.replace(/'/g, "''") + "'";
 }
 
-/** 受信箱へ通知を 1 件書くコマンド。書きかけを読まれないよう、一時ファイルに書いてから名前を変える */
-export function hookCommand(target: HookTarget, shell: Shell, notification: Notification): string {
-  const json = JSON.stringify(notification);
+/**
+ * 受信箱へ通知を 1 件書くコマンド。書きかけを読まれないよう、一時ファイルに書いてから名前を変える。
+ * payload は受信箱へ書く JSON（定義の名前だけ、または文面を直接書いたもの）。
+ */
+export function hookCommand(target: HookTarget, shell: Shell, payload: object): string {
+  const json = JSON.stringify(payload);
   if (shell === 'powershell') {
     return [
       '$d = ' + psQuote(target.inboxPath),

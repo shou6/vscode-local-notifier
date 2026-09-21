@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { availableShells, hookCommand, hookTarget, Shell } from '../hook/command';
 import { resultMessage, testNotification } from '../message/testNotification';
+import { Presets } from '../message/preset';
 import { Notification } from '../message/types';
 import { Notifier } from '../notify/notifier';
 import { WatchedInbox, writeToInbox } from './inbox';
@@ -41,7 +42,10 @@ export function notifyAndReport(notifier: Notifier): (notification: Notification
  * コマンド「Copy Hook Command」の本体。
  * 今の環境で、受信箱へ通知を書くコマンドを作ってクリップボードへ写す。
  */
-export async function copyHookCommand(inboxes: readonly WatchedInbox[]): Promise<void> {
+export async function copyHookCommand(
+  inboxes: readonly WatchedInbox[],
+  presets: Presets
+): Promise<void> {
   if (inboxes.length === 0) {
     void vscode.window.showWarningMessage(
       vscode.l10n.t('Notifications are disabled. Enable "localNotifier.enabled" to receive them.')
@@ -60,20 +64,17 @@ export async function copyHookCommand(inboxes: readonly WatchedInbox[]): Promise
     return;
   }
 
+  const payload = await pickPayload(presets);
+  if (payload === undefined) {
+    return;
+  }
   const shell = await pickShell(availableShells(target));
   if (shell === undefined) {
     return;
   }
-  const example: Notification = {
-    title: vscode.l10n.t('Task completed'),
-    message: vscode.l10n.t('The agent has finished its work.'),
-    level: 'success',
-  };
-  await vscode.env.clipboard.writeText(hookCommand(target, shell, example));
+  await vscode.env.clipboard.writeText(hookCommand(target, shell, payload));
   void vscode.window.showInformationMessage(
-    vscode.l10n.t(
-      "Copied the hook command. Paste it into your tool's hook settings and change the title and message as you like."
-    )
+    vscode.l10n.t("Copied the hook command. Paste it into your tool's hook settings.")
   );
 }
 
@@ -92,4 +93,39 @@ async function pickShell(shells: Shell[]): Promise<Shell | undefined> {
     placeHolder: vscode.l10n.t('Select the shell that runs your hook'),
   });
   return picked?.shell;
+}
+
+/**
+ * 受信箱へ書く JSON を選ぶ。定義の名前だけを送るか、文面を直接書くか。
+ * 直接書く形は、既定の「完了」の文面を書き換えやすい例として入れる。
+ */
+async function pickPayload(presets: Presets): Promise<object | undefined> {
+  const items: (vscode.QuickPickItem & { payload: object })[] = Object.entries(presets).map(
+    ([name, preset]) => ({
+      label: name,
+      description: preset.title,
+      detail: preset.message,
+      payload: { preset: name },
+    })
+  );
+  const done = presets.done ?? {};
+  items.push({
+    label: vscode.l10n.t('Custom text'),
+    description: vscode.l10n.t('Write the title and message in the command'),
+    payload: { title: done.title, message: done.message, level: done.level ?? 'success' },
+  });
+  const picked = await vscode.window.showQuickPick(items, {
+    placeHolder: vscode.l10n.t('Select the notification to send from the hook'),
+  });
+  return picked?.payload;
+}
+
+/** 存在しない定義の名前が届いた時の警告 */
+export function warnUnknownPreset(name: string): void {
+  void vscode.window.showWarningMessage(
+    vscode.l10n.t(
+      'Unknown notification preset "{0}". Define it in the "localNotifier.presets" setting.',
+      name
+    )
+  );
 }

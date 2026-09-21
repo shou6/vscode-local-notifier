@@ -7,8 +7,16 @@
   "Hook commands are available for local folders, WSL, and Dev Containers that have a .devcontainer folder.": "hook のコマンドは、ローカルのフォルダ、WSL、.devcontainer フォルダのある Dev Container で使えます。",
   "Task completed": "作業が完了しました",
   "The agent has finished its work.": "エージェントが作業を終えました。",
-  "Copied the hook command. Paste it into your tool's hook settings and change the title and message as you like.": "hook のコマンドをコピーしました。ツールの hook の設定に貼り付け、タイトルと本文を好みに書き換えてください。",
   "Git Bash on Windows": "Windows の Git Bash",
   "Windows PowerShell": "Windows PowerShell",
-  "Select the shell that runs your hook": "hook を実行するシェルを選んでください"
+  "Select the shell that runs your hook": "hook を実行するシェルを選んでください",
+  "Copied the hook command. Paste it into your tool's hook settings.": "hook のコマンドをコピーしました。ツールの hook の設定に貼り付けてください。",
+  "Waiting for input": "入力を待っています",
+  "The agent is waiting for your input.": "エージェントが入力を待っています。",
+  "Stopped with an error": "エラーで停止しました",
+  "The agent stopped because of an error.": "エージェントがエラーで停止しました。",
+  "Custom text": "文面を直接書く",
+  "Write the title and message in the command": "タイトルと本文をコマンドの中に書く",
+  "Select the notification to send from the hook": "hook から送る通知を選んでください",
+  "Unknown notification preset \"{0}\". Define it in the \"localNotifier.presets\" setting.": "通知の定義「{0}」がありません。設定「localNotifier.presets」で定義してください。"
 }

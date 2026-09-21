@@ -8,6 +8,7 @@ import {
   POLL_INTERVAL_MS,
 } from '../inbox/location';
 import { InboxFileSystem, InboxProcessor } from '../inbox/processor';
+import { Presets } from '../message/preset';
 import { Notification } from '../message/types';
 
 /** 見張っている受信箱 1 つ */
@@ -71,9 +72,16 @@ async function toWatchedInbox(
  * 起動時に溜まっていたファイルも処理する（古いものは通知せずに消える）。
  * 変更の知らせが届かない受信箱は、定期的にも確認する。
  */
+/** 受信箱の処理に渡すもの */
+export interface WatchOptions {
+  notify: (notification: Notification) => Promise<void>;
+  presets: Presets;
+  onUnknownPreset: (name: string) => void;
+}
+
 export async function watchInboxes(
   inboxes: WatchedInbox[],
-  notify: (notification: Notification) => Promise<void>
+  { notify, presets, onUnknownPreset }: WatchOptions
 ): Promise<vscode.Disposable> {
   const windowId = randomUUID().slice(0, 8);
   const disposables: vscode.Disposable[] = [];
@@ -89,6 +97,8 @@ export async function watchInboxes(
       project: inbox.project,
       now: () => Date.now(),
       notify,
+      presets,
+      onUnknownPreset,
     });
     const watcher = vscode.workspace.createFileSystemWatcher(
       new vscode.RelativePattern(inbox.uri, '*'),
