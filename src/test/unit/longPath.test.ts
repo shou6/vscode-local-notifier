@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { execFileSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -13,13 +13,12 @@ suite('longPath', () => {
     // 8 文字を超える名前のフォルダには、短いパス名が付く（付かない設定の PC では確かめられない）
     const long = fs.mkdtempSync(path.join(os.tmpdir(), 'longpathtest-'));
     try {
-      const short = execFileSync(
+      const short = spawnSync(
         'cmd.exe',
         ['/d', '/c', 'for %I in ("' + long + '") do @echo %~sI'],
-        {
-          encoding: 'utf8',
-        }
-      ).trim();
+        // 引用符を Node にエスケープさせず、cmd.exe にそのまま渡す
+        { encoding: 'utf8', windowsVerbatimArguments: true }
+      ).stdout.trim();
       if (short === long) {
         return;
       }
