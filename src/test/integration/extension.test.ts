@@ -51,8 +51,9 @@ suite('Extension', () => {
 
     await vscode.commands.executeCommand('localNotifier.sendTestNotification');
 
-    // 通知を出す PowerShell の起動を含めても、数秒で処理が終わる
-    const deadline = Date.now() + 10_000;
+    // 通知を出す PowerShell の起動を含めても、数秒で処理が終わる。
+    // テスト用の VS Code の起動直後は PowerShell が遅くなることがあるので、上限は長めにする
+    const deadline = Date.now() + 20_000;
     let remaining: string[] = [];
     do {
       await new Promise((resolve) => setTimeout(resolve, 200));
@@ -78,7 +79,7 @@ suite('Extension', () => {
       vscode.Uri.joinPath(inbox, name)
     );
 
-    const deadline = Date.now() + 10_000;
+    const deadline = Date.now() + 20_000;
     let remaining = true;
     do {
       await new Promise((resolve) => setTimeout(resolve, 200));
