@@ -25,7 +25,12 @@ export interface InboxProcessorOptions {
   presets?: Presets;
   /** 存在しない定義の名前が来た時に呼ぶ */
   onUnknownPreset?: (name: string) => void;
+  /** 処理の記録。調査のため、ファイル 1 件ごとの結果を 1 行ずつ渡す */
+  log?: (line: string) => void;
 }
+
+/** ファイルを拾ったきっかけ。変更の知らせ、定期的な確認、起動時の処理 */
+export type Trigger = 'event' | 'poll' | 'startup';
 
 /** 受信箱のファイルを通知にする */
 export class InboxProcessor {
@@ -35,7 +40,7 @@ export class InboxProcessor {
   constructor(private readonly options: InboxProcessorOptions) {}
 
   /** 受信箱にある候補をすべて処理する */
-  processAll(): Promise<void> {
+  processAll(_trigger: Trigger = 'startup'): Promise<void> {
     this.running ??= this.processAllOnce().finally(() => {
       this.running = undefined;
     });
@@ -58,7 +63,7 @@ export class InboxProcessor {
    * ファイル 1 つを処理する。失敗しても例外にしない。
    * 先に rename で確保し、確保できたウィンドウだけが読んで消す。
    */
-  async processFile(name: string): Promise<void> {
+  async processFile(name: string, _trigger: Trigger = 'event'): Promise<void> {
     if (!isCandidate(name)) {
       return;
     }

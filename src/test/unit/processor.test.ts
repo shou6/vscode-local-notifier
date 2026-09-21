@@ -221,3 +221,79 @@ suite('InboxProcessor.processAll', () => {
     await target.processAll();
   });
 });
+
+suite('InboxProcessor のログ', () => {
+  function logged(inbox: InboxFileSystem): { target: InboxProcessor; lines: string[] } {
+    const lines: string[] = [];
+    const target = new InboxProcessor({
+      fs: inbox,
+      windowId: 'w1',
+      now: () => NOW,
+      notify: () => Promise.resolve(),
+      log: (line) => lines.push(line),
+    });
+    return { target, lines };
+  }
+
+  test('確保から通知までを、きっかけとファイル名を付けて記録する', async () => {
+    const inbox = fakeInbox({ 'a.json': { text: VALID, mtimeMs: NOW } });
+    const { target, lines } = logged(inbox);
+    await target.processFile('a.json', 'event');
+    assert.deepStrictEqual(lines, ['event a.json: claimed', 'event a.json: notified "Done"']);
+  });
+
+  test('ほかに先に取られた時は、その旨と理由を記録する', async () => {
+    const inbox = fakeInbox({});
+    const { target, lines } = logged(inbox);
+    await target.processFile('a.json', 'poll');
+    assert.deepStrictEqual(lines, ['poll a.json: not claimed (ENOENT)']);
+  });
+
+  test('捨てた時は理由を記録する', async () => {
+    const inbox = fakeInbox({
+      'old.json': { text: VALID, mtimeMs: NOW - MAX_AGE_MS - 1 },
+      'bad.json': { text: '{"title":"T"}', mtimeMs: NOW },
+      'big.json': { text: 'x'.repeat(MAX_FILE_BYTES + 1), mtimeMs: NOW },
+    });
+    const { target, lines } = logged(inbox);
+    await target.processFile('old.json', 'startup');
+    await target.processFile('bad.json', 'startup');
+    await target.processFile('big.json', 'startup');
+    assert.deepStrictEqual(lines, [
+      'startup old.json: claimed',
+      'startup old.json: discarded (stale)',
+      'startup bad.json: claimed',
+      'startup bad.json: discarded (invalid-shape)',
+      'startup big.json: claimed',
+      'startup big.json: discarded (too-large)',
+    ]);
+  });
+
+  test('通知に失敗した時は、その理由を記録する', async () => {
+    const inbox = fakeInbox({ 'a.json': { text: VALID, mtimeMs: NOW } });
+    const lines: string[] = [];
+    const target = new InboxProcessor({
+      fs: inbox,
+      windowId: 'w1',
+      now: () => NOW,
+      notify: () => Promise.reject(new Error('boom')),
+      log: (line) => lines.push(line),
+    });
+    await target.processFile('a.json', 'event');
+    assert.deepStrictEqual(lines, ['event a.json: claimed', 'event a.json: notify failed (boom)']);
+  });
+
+  test('候補でないファイル（書きかけの一時ファイルなど）は記録しない', async () => {
+    const inbox = fakeInbox({ '.tmp-1.json': { text: VALID, mtimeMs: NOW } });
+    const { target, lines } = logged(inbox);
+    await target.processFile('.tmp-1.json', 'event');
+    assert.deepStrictEqual(lines, []);
+  });
+
+  test('processAll は、渡したきっかけで各ファイルを記録する', async () => {
+    const inbox = fakeInbox({ 'a.json': { text: VALID, mtimeMs: NOW } });
+    const { target, lines } = logged(inbox);
+    await target.processAll('poll');
+    assert.deepStrictEqual(lines, ['poll a.json: claimed', 'poll a.json: notified "Done"']);
+  });
+});
