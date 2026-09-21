@@ -1,1 +1,6 @@
-{}
+{
+  "Local Notifier": "Local Notifier",
+  "This is a test notification.": "テスト通知です。",
+  "Desktop notifications are only supported on Windows.": "デスクトップ通知は Windows だけに対応しています。",
+  "Failed to show the notification: {0}": "通知を表示できませんでした: {0}"
+}

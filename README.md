@@ -4,19 +4,22 @@
 
 [日本語](README.ja.md)
 
-<!-- One or two sentences on what this extension does and who it is for. -->
+Shows Windows desktop notifications when AI agents and other tools finish their work, even when they run inside a Dev Container. Any tool that can run a hook can use it.
+
+> This extension is under development. Receiving notifications from hooks is not available yet.
 
 ## Features
 
-- **Hello World**: shows a greeting with the name of the open folder.
+- **Send Test Notification**: shows a test desktop notification to confirm that notifications work.
 
 ## Usage
 
-1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`).
-2. Run **Local Notifier for VS Code: Hello World**.
+1. Open the Command Palette (`Ctrl+Shift+P`).
+2. Run **Local Notifier: Send Test Notification**.
 
 ## Requirements
 
+- Windows
 - Visual Studio Code 1.138 or later
 
 ## License

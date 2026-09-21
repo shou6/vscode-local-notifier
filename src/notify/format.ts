@@ -1,4 +1,4 @@
-import { Notification } from '../message/types';
+import { Level, Notification } from '../message/types';
 
 /** トーストに表示する 3 行 */
 export interface ToastContent {
@@ -8,6 +8,20 @@ export interface ToastContent {
   attribution: string;
 }
 
-export function formatToast(_notification: Notification): ToastContent {
-  throw new Error('not implemented');
+/** 種類ごとにタイトルの前へ付ける記号。info は付けない */
+const PREFIX: Record<Level, string> = {
+  info: '',
+  success: '✔ ',
+  warning: '⚠ ',
+  error: '✖ ',
+};
+
+export function formatToast(notification: Notification): ToastContent {
+  return {
+    title: PREFIX[notification.level ?? 'info'] + notification.title,
+    body: notification.message,
+    attribution: [notification.project, notification.source]
+      .filter((part): part is string => part !== undefined && part !== '')
+      .join(' · '),
+  };
 }
