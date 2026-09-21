@@ -49,7 +49,7 @@ A hook writes one JSON file per notification. Use a preset name, or write the te
 | `title` | Without `preset` | Title of the notification. Overrides the preset |
 | `message` | Without `preset` | Body of the notification. Overrides the preset |
 | `project` | No | Project name. Defaults to the workspace folder name in a Dev Container |
-| `level` | No | `info`, `success`, `warning`, or `error`. Defaults to the preset, then `info` |
+| `level` | No | `info`, `success`, `warning`, or `error`. Defaults to the preset, then `info`. Sets the emoji and how long the notification stays |
 | `source` | No | Name of the tool, shown below the message |
 
 ## Presets
@@ -101,6 +101,8 @@ Add the copied command to `hooks` in `.claude/settings.local.json`. In JSON, esc
 | `localNotifier.enabled` | `true` | Watch the inbox and show desktop notifications |
 | `localNotifier.inboxPath` | Empty | Folder to use as the local inbox instead of the default one |
 | `localNotifier.presets` | Empty | Presets to override or add |
+| `localNotifier.showLevelIcon` | `true` | Show an emoji for the kind before the title: ✅ success, ℹ️ info, 🟡 warning, 🔴 error |
+| `localNotifier.duration` | Warnings and errors `long` | How long each kind stays on screen. `short` is about 7 seconds, and `long` is about 25 seconds |
 
 ## Requirements
 

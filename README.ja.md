@@ -49,7 +49,7 @@ hook は、通知 1 件ごとに JSON のファイルを 1 つ書く。文面は
 | `title` | `preset` が無ければ必須 | 通知のタイトル。定義を上書きする |
 | `message` | `preset` が無ければ必須 | 通知の本文。定義を上書きする |
 | `project` | 任意 | プロジェクト名。Dev Container では、省略するとワークスペースのフォルダ名になる |
-| `level` | 任意 | `info`、`success`、`warning`、`error` のいずれか。省略すると定義の値、それも無ければ `info` |
+| `level` | 任意 | `info`、`success`、`warning`、`error` のいずれか。省略すると定義の値、それも無ければ `info`。絵文字と表示時間が変わる |
 | `source` | 任意 | ツールの名前。本文の下に表示する |
 
 ## 通知の定義
@@ -101,6 +101,8 @@ hook は、通知 1 件ごとに JSON のファイルを 1 つ書く。文面は
 | `localNotifier.enabled` | `true` | 受信箱を見張り、デスクトップ通知を出す |
 | `localNotifier.inboxPath` | 空 | 既定の代わりにローカルの受信箱にするフォルダ |
 | `localNotifier.presets` | 空 | 上書きや追加をする通知の定義 |
+| `localNotifier.showLevelIcon` | `true` | タイトルの前に種類の絵文字を付ける。✅ 成功、ℹ️ 情報、🟡 警告、🔴 エラー |
+| `localNotifier.duration` | 警告とエラーだけ `long` | 種類ごとの表示時間。`short` は約 7 秒、`long` は約 25 秒 |
 
 ## 動作環境
 

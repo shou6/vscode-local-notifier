@@ -102,6 +102,68 @@
             },
             "additionalProperties": false
           }
+        },
+        "localNotifier.showLevelIcon": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.showLevelIcon%"
+        },
+        "localNotifier.duration": {
+          "type": "object",
+          "markdownDescription": "%config.duration%",
+          "default": {
+            "info": "short",
+            "success": "short",
+            "warning": "long",
+            "error": "long"
+          },
+          "properties": {
+            "info": {
+              "type": "string",
+              "enum": [
+                "short",
+                "long"
+              ],
+              "enumDescriptions": [
+                "%config.duration.short%",
+                "%config.duration.long%"
+              ]
+            },
+            "success": {
+              "type": "string",
+              "enum": [
+                "short",
+                "long"
+              ],
+              "enumDescriptions": [
+                "%config.duration.short%",
+                "%config.duration.long%"
+              ]
+            },
+            "warning": {
+              "type": "string",
+              "enum": [
+                "short",
+                "long"
+              ],
+              "enumDescriptions": [
+                "%config.duration.short%",
+                "%config.duration.long%"
+              ]
+            },
+            "error": {
+              "type": "string",
+              "enum": [
+                "short",
+                "long"
+              ],
+              "enumDescriptions": [
+                "%config.duration.short%",
+                "%config.duration.long%"
+              ]
+            }
+          },
+          "additionalProperties": false
         }
       }
     }

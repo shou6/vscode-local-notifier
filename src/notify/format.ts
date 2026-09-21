@@ -1,4 +1,4 @@
-import { Level, Notification } from '../message/types';
+import { isLevel, Level, Notification } from '../message/types';
 
 /** Windows の通知の表示時間。短い（約 7 秒）か長い（約 25 秒）の 2 つだけ */
 export type Duration = 'short' | 'long';
@@ -25,11 +25,41 @@ export interface ToastContent {
   duration: Duration;
 }
 
-/** 設定 localNotifier.showLevelIcon と localNotifier.duration から、見た目の設定を作る */
-export function toastOptions(_showIcon: unknown, _durations: unknown): ToastOptions {
-  throw new Error('not implemented');
+/**
+ * 種類ごとにタイトルの前へ付ける絵文字。
+ * 警告とエラーは、成功と情報の絵文字と大きさが揃う色の丸にする（⚠ は通知で単色になった）。
+ */
+const ICONS: Record<Level, string> = {
+  success: '✅',
+  info: 'ℹ️',
+  warning: '🟡',
+  error: '🔴',
+};
+
+/** 設定 localNotifier.showLevelIcon と localNotifier.duration から、見た目の設定を作る。壊れた値は無視する */
+export function toastOptions(showIcon: unknown, durations: unknown): ToastOptions {
+  const options: ToastOptions = {
+    showIcon: typeof showIcon === 'boolean' ? showIcon : DEFAULT_TOAST_OPTIONS.showIcon,
+    durations: { ...DEFAULT_TOAST_OPTIONS.durations },
+  };
+  if (typeof durations === 'object' && durations !== null && !Array.isArray(durations)) {
+    for (const [level, duration] of Object.entries(durations)) {
+      if (isLevel(level) && (duration === 'short' || duration === 'long')) {
+        options.durations[level] = duration;
+      }
+    }
+  }
+  return options;
 }
 
-export function formatToast(_notification: Notification, _options: ToastOptions): ToastContent {
-  throw new Error('not implemented');
+export function formatToast(notification: Notification, options: ToastOptions): ToastContent {
+  const level = notification.level ?? 'info';
+  return {
+    title: options.showIcon ? ICONS[level] + ' ' + notification.title : notification.title,
+    body: notification.message,
+    attribution: [notification.project, notification.source]
+      .filter((part): part is string => part !== undefined && part !== '')
+      .join(' · '),
+    duration: options.durations[level],
+  };
 }

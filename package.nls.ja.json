@@ -8,5 +8,9 @@
   "config.presets.title": "通知のタイトル。",
   "config.presets.message": "通知の本文。",
   "config.presets.level": "通知の種類。",
-  "config.presets.source": "ツールの名前。本文の下に表示する。"
+  "config.presets.source": "ツールの名前。本文の下に表示する。",
+  "config.showLevelIcon": "タイトルの前に、通知の種類を表す絵文字を付ける。",
+  "config.duration": "通知の種類ごとの表示時間。`short` は約 7 秒、`long` は約 25 秒。正確な時間は Windows が決める。",
+  "config.duration.short": "約 7 秒。Windows の「通知を表示する時間」の設定に従う。",
+  "config.duration.long": "約 25 秒。"
 }

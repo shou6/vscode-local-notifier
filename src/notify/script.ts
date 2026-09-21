@@ -18,6 +18,8 @@ export const TOAST_SCRIPT = [
   '[void]$texts.Item(0).AppendChild($xml.CreateTextNode([string]$in.title))',
   '[void]$texts.Item(1).AppendChild($xml.CreateTextNode([string]$in.body))',
   '[void]$texts.Item(2).AppendChild($xml.CreateTextNode([string]$in.attribution))',
+  // 表示時間。short（約 7 秒）か long（約 25 秒）
+  "$xml.DocumentElement.SetAttribute('duration', [string]$in.duration)",
   '$toast = New-Object Windows.UI.Notifications.ToastNotification $xml',
   '[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier([string]$in.appId).Show($toast)',
 ].join('\n');
