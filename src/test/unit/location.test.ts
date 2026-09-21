@@ -90,11 +90,31 @@ suite('inboxLocations', () => {
     ]);
   });
 
-  test('.devcontainer の下の受信箱だけ、定期的にも確認する（コンテナでは変更の知らせが届かないため）', () => {
-    assert.strictEqual(needsPolling({ kind: 'workspace', folderIndex: 0, project: 'app' }), true);
-    assert.strictEqual(needsPolling({ kind: 'workspaceStorage', project: 'app' }), false);
-    assert.strictEqual(needsPolling({ kind: 'globalStorage' }), false);
-    assert.strictEqual(needsPolling({ kind: 'path', path: 'C:\\inbox' }), false);
+  test('ローカルのウィンドウでは、定期的な確認をしない（変更の知らせが届く）', () => {
+    for (const location of [
+      { kind: 'workspaceStorage', project: 'app' },
+      { kind: 'globalStorage' },
+      { kind: 'path', path: 'C:\\inbox' },
+    ] as const) {
+      assert.strictEqual(needsPolling(location, undefined), false, location.kind);
+    }
+  });
+
+  test('リモートに接続したウィンドウでは、どの受信箱も定期的に確認する（変更の知らせが届かないため）', () => {
+    for (const remoteName of ['wsl', 'dev-container']) {
+      for (const location of [
+        { kind: 'workspace', folderIndex: 0, project: 'app' },
+        { kind: 'workspaceStorage', project: 'app' },
+        { kind: 'globalStorage' },
+        { kind: 'path', path: 'C:\\inbox' },
+      ] as const) {
+        assert.strictEqual(
+          needsPolling(location, remoteName),
+          true,
+          remoteName + ' ' + location.kind
+        );
+      }
+    }
   });
 
   test('定期的な確認の間隔は、通知の遅れの目安の 2 秒', () => {

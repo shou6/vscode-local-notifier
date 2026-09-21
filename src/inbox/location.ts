@@ -34,7 +34,7 @@ export const POLL_INTERVAL_MS = 2000;
  * 変更の知らせに加えて、定期的にも確認する受信箱か。
  * Dev Container の受信箱では、コンテナの中の変更の知らせが VS Code に届かなかった（検証 V2）。
  */
-export function needsPolling(location: InboxLocation): boolean {
+export function needsPolling(location: InboxLocation, _remoteName: string | undefined): boolean {
   return location.kind === 'workspace';
 }
 

@@ -53,7 +53,7 @@ async function toWatchedInbox(
   storageUri: vscode.Uri | undefined,
   folders: readonly vscode.WorkspaceFolder[]
 ): Promise<WatchedInbox | undefined> {
-  const poll = needsPolling(location);
+  const poll = needsPolling(location, vscode.env.remoteName);
   const kind = location.kind;
   switch (location.kind) {
     case 'globalStorage':
