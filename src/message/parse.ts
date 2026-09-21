@@ -1,3 +1,4 @@
+import { Presets } from './preset';
 import { Level, Notification } from './types';
 
 /** 受信箱のファイル 1 つの大きさの上限。これを超えたら読まない */
@@ -5,7 +6,8 @@ export const MAX_FILE_BYTES = 64 * 1024;
 
 export type ParseResult =
   | { ok: true; notification: Notification }
-  | { ok: false; reason: 'too-large' | 'invalid-json' | 'invalid-shape' };
+  | { ok: false; reason: 'too-large' | 'invalid-json' | 'invalid-shape' }
+  | { ok: false; reason: 'unknown-preset'; preset: string };
 
 const LEVELS: readonly string[] = ['info', 'success', 'warning', 'error'] satisfies Level[];
 
@@ -13,7 +15,7 @@ const LEVELS: readonly string[] = ['info', 'success', 'warning', 'error'] satisf
  * 受信箱のファイルの中身を通知にする。
  * 必須の title と message が無いものは無効。任意の項目は、型が合わなければ無視する。
  */
-export function parseNotification(text: string): ParseResult {
+export function parseNotification(text: string, _presets: Presets = {}): ParseResult {
   if (Buffer.byteLength(text, 'utf8') > MAX_FILE_BYTES) {
     return { ok: false, reason: 'too-large' };
   }

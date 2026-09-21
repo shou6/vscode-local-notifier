@@ -1,4 +1,5 @@
 import { MAX_FILE_BYTES, parseNotification } from '../message/parse';
+import { Presets } from '../message/preset';
 import { Notification } from '../message/types';
 import { claimedName, isCandidate, isStale } from './policy';
 
@@ -20,6 +21,10 @@ export interface InboxProcessorOptions {
   project?: string;
   now: () => number;
   notify: (notification: Notification) => Promise<void>;
+  /** 通知の定義。preset の解決に使う */
+  presets?: Presets;
+  /** 存在しない定義の名前が来た時に呼ぶ */
+  onUnknownPreset?: (name: string) => void;
 }
 
 /** 受信箱のファイルを通知にする */

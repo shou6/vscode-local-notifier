@@ -121,6 +121,44 @@ suite('InboxProcessor.processFile', () => {
     assert.deepStrictEqual([...inbox.files.keys()], []);
   });
 
+  test('preset を指定したファイルは、定義の文面で通知する', async () => {
+    const inbox = fakeInbox({ 'a.json': { text: '{"preset":"done"}', mtimeMs: NOW } });
+    const shown: Notification[] = [];
+    const target = new InboxProcessor({
+      fs: inbox,
+      windowId: 'w1',
+      now: () => NOW,
+      presets: { done: { title: 'Done', message: 'Finished', level: 'success' } },
+      notify: (notification) => {
+        shown.push(notification);
+        return Promise.resolve();
+      },
+    });
+    await target.processFile('a.json');
+    assert.deepStrictEqual(shown, [{ title: 'Done', message: 'Finished', level: 'success' }]);
+  });
+
+  test('存在しない定義の名前なら、通知せずに消し、名前を知らせる', async () => {
+    const inbox = fakeInbox({ 'a.json': { text: '{"preset":"nope"}', mtimeMs: NOW } });
+    const shown: Notification[] = [];
+    const unknown: string[] = [];
+    const target = new InboxProcessor({
+      fs: inbox,
+      windowId: 'w1',
+      now: () => NOW,
+      presets: {},
+      notify: (notification) => {
+        shown.push(notification);
+        return Promise.resolve();
+      },
+      onUnknownPreset: (name) => unknown.push(name),
+    });
+    await target.processFile('a.json');
+    assert.deepStrictEqual(shown, []);
+    assert.deepStrictEqual(unknown, ['nope']);
+    assert.deepStrictEqual([...inbox.files.keys()], []);
+  });
+
   test('ほかのウィンドウに先に取られていたら、何もしない', async () => {
     const inbox = fakeInbox({});
     const { target, shown } = processor(inbox);
