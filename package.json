@@ -2,7 +2,7 @@
   "name": "vscode-local-notifier",
   "displayName": "Local Notifier for VS Code",
   "description": "%description%",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "shou6",
   "license": "MIT",
   "icon": "resources/icon.png",

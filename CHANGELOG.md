@@ -3,6 +3,14 @@
 This file records all notable changes to this extension.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.1]
+
+### Fixed
+
+- **Copy Hook Command** now asks where you will paste the command. **Settings file (JSON)** copies a JSON string with the quotes escaped. Before, pasting the command into a settings file such as `settings.json` broke the JSON.
+- Inboxes in a folder with a Windows short path (8.3 name) now receive notifications.
+- A notification written right after VS Code starts is no longer missed.
+
 ## [0.1.0]
 
 Initial release.
