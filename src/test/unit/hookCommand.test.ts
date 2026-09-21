@@ -4,6 +4,7 @@ import {
   availableShells,
   hookCommand,
   hookTarget,
+  asJsonString,
   HookTarget,
   psQuote,
   shQuote,
@@ -148,5 +149,39 @@ suite('hookCommand（PowerShell）', () => {
       message: 'M',
     });
     assert.ok(command.includes('\'{"title":"It\'\'s done","message":"M"}\''), command);
+  });
+});
+
+suite('asJsonString', () => {
+  // 利用者が実際にコピーした bash のコマンド。JSON の "command" にそのまま貼るとエラーになった
+  const bash =
+    "d='c:/Users/me/AppData/Roaming/Code/User/globalStorage/shou6.vscode-local-notifier/inbox'; " +
+    'n="$(date +%s%N)-$$"; ' +
+    'printf \'%s\' \'{"preset":"done"}\' > "$d/.tmp-$n.json" && mv "$d/.tmp-$n.json" "$d/$n.json"';
+
+  test('設定ファイル（JSON）の文字列として貼れる形にする。読み込むと元のコマンドに戻る', () => {
+    const text = asJsonString(bash);
+    assert.ok(text.startsWith('"') && text.endsWith('"'), text);
+    assert.strictEqual(JSON.parse(text), bash);
+  });
+
+  test('二重引用符はエスケープされ、エスケープされていない二重引用符が中に残らない', () => {
+    const inner = asJsonString(bash).slice(1, -1);
+    assert.ok(!/(^|[^\\])"/.test(inner), inner);
+  });
+
+  test('PowerShell のコマンドのバックスラッシュもエスケープされる', () => {
+    const command = hookCommand({ kind: 'local', inboxPath: 'C:\\x\\inbox' }, 'powershell', {
+      preset: 'done',
+    });
+    assert.strictEqual(JSON.parse(asJsonString(command)), command);
+    assert.ok(asJsonString(command).includes('C:\\\\x\\\\inbox'), asJsonString(command));
+  });
+
+  test('設定ファイルの中に置いた形でも、JSON として読み込める', () => {
+    const settings =
+      '{"hooks":{"Stop":[{"hooks":[{"type":"command","command":' + asJsonString(bash) + '}]}]}}';
+    const parsed = JSON.parse(settings) as { hooks: { Stop: { hooks: { command: string }[] }[] } };
+    assert.strictEqual(parsed.hooks.Stop[0].hooks[0].command, bash);
   });
 });
