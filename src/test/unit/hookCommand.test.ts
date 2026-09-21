@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import {
+  availableScopes,
   availableShells,
   hookCommand,
   hookTarget,
@@ -41,6 +42,26 @@ suite('hookTarget', () => {
 
   test('SSH など、ほかのリモートには対応していない', () => {
     assert.strictEqual(hookTarget('ssh-remote', WINDOWS_INBOX, undefined), undefined);
+  });
+});
+
+suite('availableScopes', () => {
+  test('ローカルと WSL では、このワークスペースだけか、すべてのワークスペースかを選べる。既定はこのワークスペース', () => {
+    assert.deepStrictEqual(availableScopes(undefined, true), ['workspace', 'all']);
+    assert.deepStrictEqual(availableScopes('wsl', true), ['workspace', 'all']);
+  });
+
+  test('フォルダを開いていなければ、すべてのワークスペースだけ', () => {
+    assert.deepStrictEqual(availableScopes(undefined, false), ['all']);
+    assert.deepStrictEqual(availableScopes('wsl', false), ['all']);
+  });
+
+  test('Dev Container では、このワークスペースだけ（コンテナから Windows 側の受信箱には書けない）', () => {
+    assert.deepStrictEqual(availableScopes('dev-container', true), ['workspace']);
+  });
+
+  test('SSH など、ほかのリモートでは選べるものが無い', () => {
+    assert.deepStrictEqual(availableScopes('ssh-remote', true), []);
   });
 });
 

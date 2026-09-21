@@ -29,6 +29,17 @@ export function hookTarget(
   }
 }
 
+/** hook の届け先。このワークスペースのウィンドウだけか、すべてのウィンドウか */
+export type HookScope = 'workspace' | 'all';
+
+/** 今の環境で選べる届け先。先頭が既定 */
+export function availableScopes(
+  _remoteName: string | undefined,
+  _workspaceStorage: boolean
+): HookScope[] {
+  throw new Error('not implemented');
+}
+
 /** Dev Container と WSL の中は Linux なので bash だけにする */
 export function availableShells(target: HookTarget): Shell[] {
   return target.kind === 'local' ? ['bash', 'powershell'] : ['bash'];

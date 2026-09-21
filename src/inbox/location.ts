@@ -11,7 +11,9 @@ export type InboxLocation =
   /** 設定で指定したローカルのフォルダ */
   | { kind: 'path'; path: string }
   /** ワークスペースフォルダの .devcontainer の下 */
-  | { kind: 'workspace'; folderIndex: number; project: string };
+  | { kind: 'workspace'; folderIndex: number; project: string }
+  /** ワークスペースごとの保存フォルダ（context.storageUri）の下 */
+  | { kind: 'workspaceStorage'; project: string };
 
 export interface LocationInput {
   /** vscode.env.remoteName。ローカルなら undefined */
@@ -20,6 +22,8 @@ export interface LocationInput {
   folders: string[];
   /** 設定 localNotifier.inboxPath */
   inboxPath: string;
+  /** ワークスペースごとの保存フォルダがあるか（フォルダを開いている時だけある） */
+  workspaceStorage: boolean;
 }
 
 /**

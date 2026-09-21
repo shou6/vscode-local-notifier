@@ -30,6 +30,7 @@ export async function resolveInboxes(globalStorageUri: vscode.Uri): Promise<Watc
     remoteName: vscode.env.remoteName,
     folders: folders.map((folder) => folder.name),
     inboxPath: vscode.workspace.getConfiguration('localNotifier').get<string>('inboxPath', ''),
+    workspaceStorage: false,
   });
   const inboxes: WatchedInbox[] = [];
   for (const location of locations) {
@@ -51,6 +52,8 @@ async function toWatchedInbox(
       return { uri: vscode.Uri.joinPath(globalStorageUri, 'inbox'), poll: needsPolling(location) };
     case 'path':
       return { uri: vscode.Uri.file(location.path), poll: needsPolling(location) };
+    case 'workspaceStorage':
+      return undefined;
     case 'workspace': {
       const folder = folders[location.folderIndex];
       const devcontainer = vscode.Uri.joinPath(folder.uri, DEVCONTAINER_INBOX[0]);

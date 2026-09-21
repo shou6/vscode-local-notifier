@@ -11,11 +11,11 @@ suite('formatToast', () => {
     assert.strictEqual(formatToast({ title: 'Done', message: 'Body' }).title, 'Done');
   });
 
-  test('success、warning、error はタイトルの前に記号を付けて見分けられるようにする', () => {
-    const titles = (['success', 'warning', 'error'] as const).map(
+  test('どの種類でも、タイトルに記号を付けない', () => {
+    const titles = (['info', 'success', 'warning', 'error'] as const).map(
       (level) => formatToast({ title: 'T', message: 'M', level }).title
     );
-    assert.deepStrictEqual(titles, ['✔ T', '⚠ T', '✖ T']);
+    assert.deepStrictEqual(titles, ['T', 'T', 'T', 'T']);
   });
 
   test('下の行にはプロジェクト名と送り手の名前を並べる', () => {
