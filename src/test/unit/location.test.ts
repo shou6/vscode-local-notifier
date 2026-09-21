@@ -1,5 +1,10 @@
 import * as assert from 'assert';
-import { DEVCONTAINER_INBOX, inboxLocations } from '../../inbox/location';
+import {
+  DEVCONTAINER_INBOX,
+  inboxLocations,
+  needsPolling,
+  POLL_INTERVAL_MS,
+} from '../../inbox/location';
 
 suite('inboxLocations', () => {
   test('ローカルでは、拡張機能専用の保存フォルダの下の受信箱だけを見張る', () => {
@@ -42,6 +47,16 @@ suite('inboxLocations', () => {
     assert.deepStrictEqual(locations, [{ kind: 'globalStorage' }]);
     const trimmed = inboxLocations({ remoteName: undefined, folders: [], inboxPath: ' D:\\x ' });
     assert.deepStrictEqual(trimmed, [{ kind: 'path', path: 'D:\\x' }]);
+  });
+
+  test('.devcontainer の下の受信箱だけ、定期的にも確認する（コンテナでは変更の知らせが届かないため）', () => {
+    assert.strictEqual(needsPolling({ kind: 'workspace', folderIndex: 0, project: 'app' }), true);
+    assert.strictEqual(needsPolling({ kind: 'globalStorage' }), false);
+    assert.strictEqual(needsPolling({ kind: 'path', path: 'C:\\inbox' }), false);
+  });
+
+  test('定期的な確認の間隔は、通知の遅れの目安の 2 秒', () => {
+    assert.strictEqual(POLL_INTERVAL_MS, 2000);
   });
 
   test('.devcontainer の下の受信箱の相対パス', () => {

@@ -162,6 +162,20 @@ suite('InboxProcessor.processAll', () => {
     assert.deepStrictEqual([...inbox.files.keys()], ['.gitignore']);
   });
 
+  test('前回の処理が終わる前に呼ばれたら、重ねて処理しない（定期的な確認が重なった時）', async () => {
+    const inbox = fakeInbox({ 'a.json': { text: VALID, mtimeMs: NOW } });
+    let lists = 0;
+    const list = inbox.list;
+    inbox.list = () => {
+      lists++;
+      return list();
+    };
+    const { target, shown } = processor(inbox);
+    await Promise.all([target.processAll(), target.processAll()]);
+    assert.strictEqual(lists, 1);
+    assert.strictEqual(shown.length, 1);
+  });
+
   test('受信箱が読めなくても例外にしない', async () => {
     const inbox = fakeInbox({});
     inbox.list = () => Promise.reject(new Error('ENOENT'));

@@ -27,6 +27,14 @@ export interface LocationInput {
  * ローカルの受信箱（ローカルと WSL の送り手が書く）はどのウィンドウでも見張る。
  * Dev Container に接続中は、加えて各ワークスペースフォルダの .devcontainer の下も見張る。
  */
+/** 定期的な確認の間隔 */
+export const POLL_INTERVAL_MS = 0;
+
+/** 変更の知らせに加えて、定期的にも確認する受信箱か */
+export function needsPolling(_location: InboxLocation): boolean {
+  throw new Error('not implemented');
+}
+
 export function inboxLocations(input: LocationInput): InboxLocation[] {
   const inboxPath = input.inboxPath.trim();
   const local: InboxLocation =
