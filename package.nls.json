@@ -12,5 +12,6 @@
   "config.showLevelIcon": "Show an emoji for the kind of notification before the title.",
   "config.duration": "How long each kind of notification stays on screen. `short` is about 7 seconds and `long` is about 25 seconds. Windows decides the exact time.",
   "config.duration.short": "About 7 seconds. Follows the Windows setting for how long to show notifications.",
-  "config.duration.long": "About 25 seconds."
+  "config.duration.long": "About 25 seconds.",
+  "command.showStatus": "Show Status"
 }

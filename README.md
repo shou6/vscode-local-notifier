@@ -12,6 +12,8 @@ You don't need a separate app, port, or token. A hook writes a small JSON file t
 
 - **Send Test Notification**: sends a test notification through the inbox to check the setup.
 - **Copy Hook Command**: copies a command that sends a notification from the current environment. Paste it into your tool's hook settings.
+- **Show Status**: shows whether notifications work and which inboxes this window watches.
+- **Log**: the **Local Notifier** channel in the Output panel records what happened to each notification file.
 
 ## Usage
 

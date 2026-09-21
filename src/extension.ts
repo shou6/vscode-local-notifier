@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { toastAppId } from './notify/appId';
 import { toastOptions } from './notify/format';
-import { createNotifier } from './notify/notifier';
+import { createNotifier, NotifyResult } from './notify/notifier';
 import { nodeProcessRunner } from './platform/process';
 import { builtInPresets, mergePresets, Presets } from './message/preset';
 import {
@@ -11,6 +11,7 @@ import {
   warnUnknownPreset,
 } from './ui/commands';
 import { resolveInboxes, WatchedInbox, watchInboxes } from './ui/inbox';
+import { showStatus } from './ui/status';
 
 /** 統合テストから見張りの状態を確かめるための戻り値 */
 export interface LocalNotifierApi {
@@ -32,7 +33,9 @@ export function activate(context: vscode.ExtensionContext): LocalNotifierApi {
   // 処理の記録。出力パネルの「Local Notifier」に出し、VS Code のログのフォルダにも残る
   const log = vscode.window.createOutputChannel('Local Notifier', { log: true });
   context.subscriptions.push(log);
-  const notify = notifyAndReport(notifier, log);
+  /** このウィンドウで最後に出した通知の結果。状態の一覧に出す */
+  let lastToast: NotifyResult | undefined;
+  const notify = notifyAndReport(notifier, log, (result) => (lastToast = result));
 
   let inboxes: WatchedInbox[] = [];
   let presets: Presets = builtInPresets(vscode.l10n.t);
@@ -68,6 +71,27 @@ export function activate(context: vscode.ExtensionContext): LocalNotifierApi {
     vscode.commands.registerCommand('localNotifier.copyHookCommand', async () => {
       await restarting;
       await copyHookCommand(inboxes, presets);
+    }),
+    vscode.commands.registerCommand('localNotifier.showStatus', async () => {
+      await restarting;
+      await showStatus(
+        {
+          platform: process.platform,
+          remoteName: vscode.env.remoteName,
+          enabled: vscode.workspace.getConfiguration('localNotifier').get<boolean>('enabled', true),
+          inboxes: inboxes.map((inbox) => ({
+            kind: inbox.kind,
+            path:
+              inbox.uri.scheme === 'file' || inbox.uri.scheme === 'vscode-userdata'
+                ? inbox.uri.fsPath
+                : inbox.uri.path,
+            poll: inbox.poll,
+            project: inbox.project,
+          })),
+          lastToast,
+        },
+        log
+      );
     }),
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration('localNotifier')) {

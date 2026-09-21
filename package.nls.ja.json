@@ -12,5 +12,6 @@
   "config.showLevelIcon": "タイトルの前に、通知の種類を表す絵文字を付ける。",
   "config.duration": "通知の種類ごとの表示時間。`short` は約 7 秒、`long` は約 25 秒。正確な時間は Windows が決める。",
   "config.duration.short": "約 7 秒。Windows の「通知を表示する時間」の設定に従う。",
-  "config.duration.long": "約 25 秒。"
+  "config.duration.long": "約 25 秒。",
+  "command.showStatus": "状態を表示"
 }

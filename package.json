@@ -55,6 +55,11 @@
         "command": "localNotifier.copyHookCommand",
         "title": "%command.copyHookCommand%",
         "category": "Local Notifier"
+      },
+      {
+        "command": "localNotifier.showStatus",
+        "title": "%command.showStatus%",
+        "category": "Local Notifier"
       }
     ],
     "configuration": {

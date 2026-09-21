@@ -10,7 +10,7 @@ import {
 import { resultMessage, testNotification } from '../message/testNotification';
 import { Presets } from '../message/preset';
 import { Notification } from '../message/types';
-import { Notifier } from '../notify/notifier';
+import { Notifier, NotifyResult } from '../notify/notifier';
 import { WatchedInbox, writeToInbox } from './inbox';
 
 /**
@@ -36,11 +36,13 @@ export async function sendTestNotification(inboxes: readonly WatchedInbox[]): Pr
  */
 export function notifyAndReport(
   notifier: Notifier,
-  log: vscode.LogOutputChannel
+  log: vscode.LogOutputChannel,
+  onResult: (result: NotifyResult) => void
 ): (notification: Notification) => Promise<void> {
   const reported = new Set<string>();
   return async (notification) => {
     const result = await notifier.notify(notification);
+    onResult(result);
     if (!result.ok) {
       log.warn('toast failed: ' + (result.reason === 'failed' ? result.detail : result.reason));
     }
