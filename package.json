@@ -51,7 +51,22 @@
         "title": "%command.sendTestNotification%",
         "category": "Local Notifier"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Local Notifier",
+      "properties": {
+        "localNotifier.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.enabled%"
+        },
+        "localNotifier.inboxPath": {
+          "type": "string",
+          "default": "",
+          "description": "%config.inboxPath%"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

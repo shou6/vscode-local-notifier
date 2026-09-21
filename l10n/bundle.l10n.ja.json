@@ -2,5 +2,6 @@
   "Local Notifier": "Local Notifier",
   "This is a test notification.": "テスト通知です。",
   "Desktop notifications are only supported on Windows.": "デスクトップ通知は Windows だけに対応しています。",
-  "Failed to show the notification: {0}": "通知を表示できませんでした: {0}"
+  "Failed to show the notification: {0}": "通知を表示できませんでした: {0}",
+  "Notifications are disabled. Enable \"localNotifier.enabled\" to receive them.": "通知が無効になっています。受け取るには「localNotifier.enabled」を有効にしてください。"
 }

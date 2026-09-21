@@ -1,4 +1,6 @@
 {
   "description": "AI エージェントなど hook を掛けられるツールから、Dev Container の中からでもデスクトップ通知を出す。",
-  "command.sendTestNotification": "テスト通知を送る"
+  "command.sendTestNotification": "テスト通知を送る",
+  "config.enabled": "受信箱を見張り、デスクトップ通知を出す。",
+  "config.inboxPath": "ローカルの受信箱にするフォルダ。空なら VS Code が用意する拡張機能専用の保存フォルダを使う。"
 }

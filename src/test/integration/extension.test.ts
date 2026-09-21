@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import type { LocalNotifierApi } from '../../extension';
 
 // out/test/integration から見たプロジェクトルート
 const ROOT = path.resolve(__dirname, '../../..');
@@ -39,6 +40,26 @@ suite('Extension', () => {
       [],
       '登録されていないコマンド'
     );
+  });
+
+  test('テスト通知を送ると、受信箱のファイルが見張りに拾われて消える', async () => {
+    const extension = vscode.extensions.getExtension<LocalNotifierApi>(extensionId());
+    assert.ok(extension);
+    const api = await extension.activate();
+    const inboxes = await api.inboxes();
+    assert.ok(inboxes.length > 0, '見張っている受信箱が無い');
+
+    await vscode.commands.executeCommand('localNotifier.sendTestNotification');
+
+    // 通知を出す PowerShell の起動を含めても、数秒で処理が終わる
+    const deadline = Date.now() + 10_000;
+    let remaining: string[] = [];
+    do {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      const entries = await vscode.workspace.fs.readDirectory(inboxes[0].uri);
+      remaining = entries.map(([name]) => name).filter((name) => !name.startsWith('.'));
+    } while (remaining.length > 0 && Date.now() < deadline);
+    assert.deepStrictEqual(remaining, []);
   });
 
   test('ローカル側（UI 側）で動く拡張として宣言している', () => {

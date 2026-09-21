@@ -1,16 +1,22 @@
 /** これより古いファイルは、VS Code を閉じていた間に溜まったものとして通知しない */
-export const MAX_AGE_MS = 0;
+export const MAX_AGE_MS = 5 * 60 * 1000;
 
-/** 通知の候補になるファイル名か */
-export function isCandidate(_name: string): boolean {
-  throw new Error('not implemented');
+/**
+ * 通知の候補になるファイル名か。
+ * . で始まるものは除く。送り手が書きかけの一時ファイルと、取り合いで確保した後のファイルがこれに当たる。
+ */
+export function isCandidate(name: string): boolean {
+  return !name.startsWith('.') && name.toLowerCase().endsWith('.json');
 }
 
-/** 取り合いで確保した後の名前 */
-export function claimedName(_name: string, _windowId: string): string {
-  throw new Error('not implemented');
+/**
+ * 取り合いで確保した後の名前。
+ * 複数のウィンドウが同じ受信箱を見張っていても、rename に成功した 1 つだけが通知する。
+ */
+export function claimedName(name: string, windowId: string): string {
+  return '.claimed-' + windowId + '-' + name;
 }
 
-export function isStale(_mtimeMs: number, _nowMs: number): boolean {
-  throw new Error('not implemented');
+export function isStale(mtimeMs: number, nowMs: number): boolean {
+  return nowMs - mtimeMs > MAX_AGE_MS;
 }

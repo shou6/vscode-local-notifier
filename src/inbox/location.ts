@@ -1,5 +1,8 @@
-/** ワークスペースフォルダからの、Dev Container 用の受信箱の相対パス */
-export const DEVCONTAINER_INBOX: readonly string[] = [];
+/**
+ * ワークスペースフォルダからの、Dev Container 用の受信箱の相対パス。
+ * Dev Container を使うプロジェクトには必ず .devcontainer があり、コンテナとホストの両方から見える。
+ */
+export const DEVCONTAINER_INBOX: readonly string[] = ['.devcontainer', '.local-notifier', 'inbox'];
 
 /** 見張る受信箱 1 つ */
 export type InboxLocation =
@@ -19,6 +22,24 @@ export interface LocationInput {
   inboxPath: string;
 }
 
-export function inboxLocations(_input: LocationInput): InboxLocation[] {
-  throw new Error('not implemented');
+/**
+ * 見張る受信箱を決める。
+ * ローカルの受信箱（ローカルと WSL の送り手が書く）はどのウィンドウでも見張る。
+ * Dev Container に接続中は、加えて各ワークスペースフォルダの .devcontainer の下も見張る。
+ */
+export function inboxLocations(input: LocationInput): InboxLocation[] {
+  const inboxPath = input.inboxPath.trim();
+  const local: InboxLocation =
+    inboxPath === '' ? { kind: 'globalStorage' } : { kind: 'path', path: inboxPath };
+  if (input.remoteName !== 'dev-container') {
+    return [local];
+  }
+  return [
+    local,
+    ...input.folders.map((project, folderIndex): InboxLocation => ({
+      kind: 'workspace',
+      folderIndex,
+      project,
+    })),
+  ];
 }

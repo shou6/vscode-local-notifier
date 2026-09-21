@@ -1,4 +1,6 @@
 {
   "description": "Desktop notifications for AI agents and other tools that can run hooks, including inside Dev Containers.",
-  "command.sendTestNotification": "Send Test Notification"
+  "command.sendTestNotification": "Send Test Notification",
+  "config.enabled": "Watch the inbox and show desktop notifications.",
+  "config.inboxPath": "Folder to use as the local inbox. Leave empty to use the extension's storage folder provided by VS Code."
 }
