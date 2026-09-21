@@ -10,6 +10,7 @@ import {
 import { InboxFileSystem, InboxProcessor } from '../inbox/processor';
 import { Presets } from '../message/preset';
 import { Notification } from '../message/types';
+import { longPath } from '../platform/longPath';
 
 /** 見張っている受信箱 1 つ */
 export interface WatchedInbox {
@@ -109,6 +110,11 @@ export async function watchInboxes(
     } catch (error) {
       log.warn(prefix + 'cannot prepare ' + inbox.uri.toString() + ': ' + String(error));
       continue;
+    }
+    // 手元のディスクの受信箱は、正式なパスに直してから見張る。短いパス名のままだと変更の知らせが届かない。
+    // 直したパスは、hook のコマンドのコピーと状態の表示にも使う
+    if (inbox.uri.scheme === 'file' || inbox.uri.scheme === 'vscode-userdata') {
+      inbox.uri = vscode.Uri.file(await longPath(inbox.uri.fsPath));
     }
     log.info(
       prefix + 'watching ' + inbox.kind + ' ' + inbox.uri.toString() + (inbox.poll ? ' (poll)' : '')
