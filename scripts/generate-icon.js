@@ -1,9 +1,10 @@
 // 拡張機能のアイコン（resources/icon.png）を生成する。
 // 使い方: npm run icon
 //
-// 図案：紺の角丸の正方形に、白いベルと、右へ広がる 2 本の音の波。
-// 「作業の区切りで通知が鳴る」ことだけを表す。元の図案（docs/icon_sample.png）にあった
-// ロボット、脳、コンテナ、情報と警告の記号は、32px の表示で潰れるため外した。
+// 図案：紺の角丸の正方形に、白いベルと、右へ広がる 2 本の音の波。右下に、AI エージェントを表す
+// ロボットの顔のバッジ。「エージェントの作業の区切りで通知が鳴る」ことを表す。
+// 元の図案（docs/icon_sample.png）にあった脳、コンテナ、情報と警告の記号は、
+// 32px の表示で潰れるため外した。
 //
 // Marketplace のアイコンは 128px 以上の PNG でなければならない（SVG は受け付けられない）。
 // 画像ライブラリに依存せず、Node 標準の zlib だけで PNG を書き出す。
@@ -24,12 +25,17 @@ const BACKGROUND_BOTTOM = [10, 20, 52];
 /** ベルのグラデーション（上から下へ） */
 const BELL_TOP = [255, 255, 255];
 const BELL_BOTTOM = [196, 216, 255];
+/** バッジ。縁取り、丸、顔、目 */
+const BADGE_RING = [12, 24, 58];
+const BADGE = [59, 130, 246];
+const BADGE_FACE = [255, 255, 255];
+const BADGE_EYE = [30, 64, 175];
 /** 音の波。内側と外側 */
 const WAVE_INNER = [56, 189, 248];
 const WAVE_OUTER = [37, 150, 235];
 
 /** ベルの中心の x。音の波を右に置くので、少し左に寄せる */
-const BELL_X = 470;
+const BELL_X = 440;
 
 /** 角丸の四角までの符号付き距離（内側が負） */
 function roundedRectDistance(x, y, [left, top, right, bottom], radius) {
@@ -145,6 +151,20 @@ function colorAt(x, y) {
 
   // ベル
   paint(mix(BELL_TOP, BELL_BOTTOM, (y - 190) / 640), coverage(bellDistance(x, y)));
+
+  // バッジ（右下）
+  const bx = 760;
+  const by = 760;
+  const R = 150;
+  paint([0, 0, 0], shadowAlpha(Math.hypot(x - bx, y - (by + 14)) - R, 20, 0.55));
+  paint(BADGE_RING, coverage(Math.hypot(x - bx, y - by) - (R + 18)));
+  paint(BADGE, coverage(Math.hypot(x - bx, y - by) - R));
+  // ロボットの顔：頭、アンテナ、目
+  paint(BADGE_FACE, coverage(roundedRectDistance(x, y, [bx - 95, by - 55, bx + 95, by + 60], 45)));
+  paint(BADGE_FACE, coverage(roundedRectDistance(x, y, [bx - 10, by - 110, bx + 10, by - 55], 10)));
+  paint(BADGE_FACE, coverage(Math.hypot(x - bx, y - (by - 106)) - 24));
+  paint(BADGE_EYE, coverage(Math.hypot(x - (bx - 35), y - (by + 5)) - 20));
+  paint(BADGE_EYE, coverage(Math.hypot(x - (bx + 35), y - (by + 5)) - 20));
 
   return [...color, alpha];
 }
