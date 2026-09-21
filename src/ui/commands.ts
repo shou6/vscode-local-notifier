@@ -34,10 +34,17 @@ export async function sendTestNotification(inboxes: readonly WatchedInbox[]): Pr
  * 通知を出し、失敗したら利用者に伝える。
  * 同じ文言は 1 回のセッションで 1 度だけ出す（hook のたびに警告が出続けないように）。
  */
-export function notifyAndReport(notifier: Notifier): (notification: Notification) => Promise<void> {
+export function notifyAndReport(
+  notifier: Notifier,
+  log: vscode.LogOutputChannel
+): (notification: Notification) => Promise<void> {
   const reported = new Set<string>();
   return async (notification) => {
-    const message = resultMessage(vscode.l10n.t, await notifier.notify(notification));
+    const result = await notifier.notify(notification);
+    if (!result.ok) {
+      log.warn('toast failed: ' + (result.reason === 'failed' ? result.detail : result.reason));
+    }
+    const message = resultMessage(vscode.l10n.t, result);
     if (message !== undefined && !reported.has(message)) {
       reported.add(message);
       void vscode.window.showWarningMessage(message);

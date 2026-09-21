@@ -29,7 +29,10 @@ export function activate(context: vscode.ExtensionContext): LocalNotifierApi {
       return toastOptions(config.get<unknown>('showLevelIcon'), config.get<unknown>('duration'));
     }
   );
-  const notify = notifyAndReport(notifier);
+  // 処理の記録。出力パネルの「Local Notifier」に出し、VS Code のログのフォルダにも残る
+  const log = vscode.window.createOutputChannel('Local Notifier', { log: true });
+  context.subscriptions.push(log);
+  const notify = notifyAndReport(notifier, log);
 
   let inboxes: WatchedInbox[] = [];
   let presets: Presets = builtInPresets(vscode.l10n.t);
@@ -53,6 +56,7 @@ export function activate(context: vscode.ExtensionContext): LocalNotifierApi {
         notify,
         presets,
         onUnknownPreset: warnUnknownPreset,
+        log,
       });
     }));
 

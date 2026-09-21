@@ -40,14 +40,14 @@ export class InboxProcessor {
   constructor(private readonly options: InboxProcessorOptions) {}
 
   /** 受信箱にある候補をすべて処理する */
-  processAll(_trigger: Trigger = 'startup'): Promise<void> {
-    this.running ??= this.processAllOnce().finally(() => {
+  processAll(trigger: Trigger = 'startup'): Promise<void> {
+    this.running ??= this.processAllOnce(trigger).finally(() => {
       this.running = undefined;
     });
     return this.running;
   }
 
-  private async processAllOnce(): Promise<void> {
+  private async processAllOnce(trigger: Trigger): Promise<void> {
     let names: string[];
     try {
       names = await this.options.fs.list();
@@ -55,7 +55,7 @@ export class InboxProcessor {
       return;
     }
     for (const name of names) {
-      await this.processFile(name);
+      await this.processFile(name, trigger);
     }
   }
 
@@ -63,33 +63,63 @@ export class InboxProcessor {
    * ファイル 1 つを処理する。失敗しても例外にしない。
    * 先に rename で確保し、確保できたウィンドウだけが読んで消す。
    */
-  async processFile(name: string, _trigger: Trigger = 'event'): Promise<void> {
+  async processFile(name: string, trigger: Trigger = 'event'): Promise<void> {
     if (!isCandidate(name)) {
       return;
     }
     const { fs, windowId, project, now, notify, presets, onUnknownPreset } = this.options;
+    const log = (message: string): void =>
+      this.options.log?.(trigger + ' ' + name + ': ' + message);
     const claimed = claimedName(name, windowId);
+    let owned = false;
     try {
-      const stat = await fs.stat(name);
-      await fs.rename(name, claimed);
-      if (stat.size > MAX_FILE_BYTES || isStale(stat.mtimeMs, now())) {
+      let stat: { mtimeMs: number; size: number };
+      try {
+        stat = await fs.stat(name);
+        await fs.rename(name, claimed);
+      } catch (error) {
+        log('not claimed (' + errorMessage(error) + ')');
+        return;
+      }
+      owned = true;
+      log('claimed');
+      if (stat.size > MAX_FILE_BYTES) {
+        log('discarded (too-large)');
+        return;
+      }
+      if (isStale(stat.mtimeMs, now())) {
+        log('discarded (stale)');
         return;
       }
       const result = parseNotification(await fs.read(claimed), presets);
-      if (!result.ok && result.reason === 'unknown-preset') {
-        onUnknownPreset?.(result.preset);
-      }
-      if (result.ok) {
-        const notification = result.notification;
-        if (notification.project === undefined && project !== undefined) {
-          notification.project = project;
+      if (!result.ok) {
+        log('discarded (' + result.reason + ')');
+        if (result.reason === 'unknown-preset') {
+          onUnknownPreset?.(result.preset);
         }
-        await notify(notification);
+        return;
       }
-    } catch {
-      // ほかのウィンドウに先に取られた、または通知に失敗した
+      const notification = result.notification;
+      if (notification.project === undefined && project !== undefined) {
+        notification.project = project;
+      }
+      try {
+        await notify(notification);
+        log('notified ' + JSON.stringify(notification.title));
+      } catch (error) {
+        log('notify failed (' + errorMessage(error) + ')');
+      }
+    } catch (error) {
+      log('failed (' + errorMessage(error) + ')');
     } finally {
-      await fs.delete(claimed).catch(() => undefined);
+      // 確保できた時だけ消す。確保できなかった時に消すと、同じ名前で確保した処理のファイルを消してしまう
+      if (owned) {
+        await fs.delete(claimed).catch(() => undefined);
+      }
     }
   }
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

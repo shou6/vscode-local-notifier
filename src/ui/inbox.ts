@@ -86,6 +86,8 @@ export interface WatchOptions {
   notify: (notification: Notification) => Promise<void>;
   presets: Presets;
   onUnknownPreset: (name: string) => void;
+  /** 処理の記録の出力先 */
+  log: vscode.LogOutputChannel;
 }
 
 /**
@@ -95,16 +97,22 @@ export interface WatchOptions {
  */
 export async function watchInboxes(
   inboxes: WatchedInbox[],
-  { notify, presets, onUnknownPreset }: WatchOptions
+  { notify, presets, onUnknownPreset, log }: WatchOptions
 ): Promise<vscode.Disposable> {
   const windowId = randomUUID().slice(0, 8);
+  const prefix = '[' + windowId + '] ';
+  log.info(prefix + 'start watching. remote: ' + (vscode.env.remoteName ?? 'local'));
   const disposables: vscode.Disposable[] = [];
   for (const inbox of inboxes) {
     try {
       await prepareInbox(inbox.uri);
-    } catch {
+    } catch (error) {
+      log.warn(prefix + 'cannot prepare ' + inbox.uri.toString() + ': ' + String(error));
       continue;
     }
+    log.info(
+      prefix + 'watching ' + inbox.kind + ' ' + inbox.uri.toString() + (inbox.poll ? ' (poll)' : '')
+    );
     const processor = new InboxProcessor({
       fs: inboxFileSystem(inbox.uri),
       windowId,
@@ -113,6 +121,7 @@ export async function watchInboxes(
       notify,
       presets,
       onUnknownPreset,
+      log: (line) => log.info(prefix + inbox.kind + ' ' + line),
     });
     const watcher = vscode.workspace.createFileSystemWatcher(
       new vscode.RelativePattern(inbox.uri, '*'),
@@ -121,12 +130,12 @@ export async function watchInboxes(
       true
     );
     const onFile = (uri: vscode.Uri): void => {
-      void processor.processFile(basename(uri));
+      void processor.processFile(basename(uri), 'event');
     };
     disposables.push(watcher, watcher.onDidCreate(onFile), watcher.onDidChange(onFile));
-    void processor.processAll();
+    void processor.processAll('startup');
     if (inbox.poll) {
-      const timer = setInterval(() => void processor.processAll(), POLL_INTERVAL_MS);
+      const timer = setInterval(() => void processor.processAll('poll'), POLL_INTERVAL_MS);
       disposables.push({ dispose: () => clearInterval(timer) });
     }
   }
