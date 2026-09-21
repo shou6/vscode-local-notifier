@@ -13,32 +13,67 @@ export type HookTarget =
 
 /** 今の環境で hook が通知を書く先。対応していない環境なら undefined */
 export function hookTarget(
-  _remoteName: string | undefined,
-  _localInboxPath: string,
-  _devcontainerInboxPath: string | undefined
+  remoteName: string | undefined,
+  localInboxPath: string,
+  devcontainerInboxPath: string | undefined
 ): HookTarget | undefined {
-  throw new Error('not implemented');
+  switch (remoteName) {
+    case undefined:
+      return { kind: 'local', inboxPath: localInboxPath };
+    case 'wsl':
+      return { kind: 'wsl', inboxPath: localInboxPath };
+    case 'dev-container':
+      return devcontainerInboxPath === undefined
+        ? undefined
+        : { kind: 'devcontainer', inboxPath: devcontainerInboxPath };
+    default:
+      return undefined;
+  }
 }
 
-export function availableShells(_target: HookTarget): Shell[] {
-  throw new Error('not implemented');
+/** Dev Container と WSL の中は Linux なので bash だけにする */
+export function availableShells(target: HookTarget): Shell[] {
+  return target.kind === 'local' ? ['bash', 'powershell'] : ['bash'];
 }
 
 /** bash の単一引用符で囲む */
-export function shQuote(_value: string): string {
-  throw new Error('not implemented');
+export function shQuote(value: string): string {
+  return "'" + value.replace(/'/g, "'\\''") + "'";
 }
 
 /** PowerShell の単一引用符で囲む */
-export function psQuote(_value: string): string {
-  throw new Error('not implemented');
+export function psQuote(value: string): string {
+  return "'" + value.replace(/'/g, "''") + "'";
 }
 
 /** 受信箱へ通知を 1 件書くコマンド。書きかけを読まれないよう、一時ファイルに書いてから名前を変える */
-export function hookCommand(
-  _target: HookTarget,
-  _shell: Shell,
-  _notification: Notification
-): string {
-  throw new Error('not implemented');
+export function hookCommand(target: HookTarget, shell: Shell, notification: Notification): string {
+  const json = JSON.stringify(notification);
+  if (shell === 'powershell') {
+    return [
+      '$d = ' + psQuote(target.inboxPath),
+      "$n = '' + [DateTimeOffset]::Now.ToUnixTimeMilliseconds() + '-' + $PID",
+      // WriteAllText は BOM 無しの UTF-8 で書く
+      '[IO.File]::WriteAllText("$d\\.tmp-$n.json", ' + psQuote(json) + ')',
+      'Move-Item "$d\\.tmp-$n.json" "$d\\$n.json"',
+    ].join('; ');
+  }
+  return [
+    'd=' + bashInboxPath(target),
+    'n="$(date +%s%N)-$$"',
+    "printf '%s' " + shQuote(json) + ' > "$d/.tmp-$n.json" && mv "$d/.tmp-$n.json" "$d/$n.json"',
+  ].join('; ');
+}
+
+function bashInboxPath(target: HookTarget): string {
+  switch (target.kind) {
+    case 'devcontainer':
+      return shQuote(target.inboxPath);
+    case 'wsl':
+      // 自動マウントの場所（既定は /mnt/c）を変えている環境でも正しく変換される
+      return '"$(wslpath ' + shQuote(target.inboxPath) + ')"';
+    case 'local':
+      // Git Bash は / 区切りの Windows のパスをそのまま扱える
+      return shQuote(target.inboxPath.replace(/\\/g, '/'));
+  }
 }

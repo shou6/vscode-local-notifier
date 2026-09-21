@@ -50,6 +50,11 @@
         "command": "localNotifier.sendTestNotification",
         "title": "%command.sendTestNotification%",
         "category": "Local Notifier"
+      },
+      {
+        "command": "localNotifier.copyHookCommand",
+        "title": "%command.copyHookCommand%",
+        "category": "Local Notifier"
       }
     ],
     "configuration": {

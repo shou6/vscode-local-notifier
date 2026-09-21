@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { toastAppId } from './notify/appId';
 import { createNotifier } from './notify/notifier';
 import { nodeProcessRunner } from './platform/process';
-import { notifyAndReport, sendTestNotification } from './ui/commands';
+import { copyHookCommand, notifyAndReport, sendTestNotification } from './ui/commands';
 import { resolveInboxes, WatchedInbox, watchInboxes } from './ui/inbox';
 
 /** 統合テストから見張りの状態を確かめるための戻り値 */
@@ -40,6 +40,10 @@ export function activate(context: vscode.ExtensionContext): LocalNotifierApi {
     vscode.commands.registerCommand('localNotifier.sendTestNotification', async () => {
       await restarting;
       await sendTestNotification(inboxes);
+    }),
+    vscode.commands.registerCommand('localNotifier.copyHookCommand', async () => {
+      await restarting;
+      await copyHookCommand(inboxes);
     }),
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration('localNotifier')) {

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { availableShells, hookCommand, hookTarget, Shell } from '../hook/command';
 import { resultMessage, testNotification } from '../message/testNotification';
 import { Notification } from '../message/types';
 import { Notifier } from '../notify/notifier';
@@ -34,4 +35,61 @@ export function notifyAndReport(notifier: Notifier): (notification: Notification
       void vscode.window.showWarningMessage(message);
     }
   };
+}
+
+/**
+ * コマンド「Copy Hook Command」の本体。
+ * 今の環境で、受信箱へ通知を書くコマンドを作ってクリップボードへ写す。
+ */
+export async function copyHookCommand(inboxes: readonly WatchedInbox[]): Promise<void> {
+  if (inboxes.length === 0) {
+    void vscode.window.showWarningMessage(
+      vscode.l10n.t('Notifications are disabled. Enable "localNotifier.enabled" to receive them.')
+    );
+    return;
+  }
+  const local = inboxes.find((inbox) => inbox.project === undefined);
+  const devcontainer = inboxes.find((inbox) => inbox.project !== undefined);
+  const target = hookTarget(vscode.env.remoteName, local?.uri.fsPath ?? '', devcontainer?.uri.path);
+  if (target === undefined) {
+    void vscode.window.showWarningMessage(
+      vscode.l10n.t(
+        'Hook commands are available for local folders, WSL, and Dev Containers that have a .devcontainer folder.'
+      )
+    );
+    return;
+  }
+
+  const shell = await pickShell(availableShells(target));
+  if (shell === undefined) {
+    return;
+  }
+  const example: Notification = {
+    title: vscode.l10n.t('Task completed'),
+    message: vscode.l10n.t('The agent has finished its work.'),
+    level: 'success',
+  };
+  await vscode.env.clipboard.writeText(hookCommand(target, shell, example));
+  void vscode.window.showInformationMessage(
+    vscode.l10n.t(
+      "Copied the hook command. Paste it into your tool's hook settings and change the title and message as you like."
+    )
+  );
+}
+
+/** シェルが 1 つだけなら聞かずにそれを使う */
+async function pickShell(shells: Shell[]): Promise<Shell | undefined> {
+  if (shells.length === 1) {
+    return shells[0];
+  }
+  const items = shells.map((shell) => ({
+    label: shell === 'bash' ? 'bash' : 'PowerShell',
+    description:
+      shell === 'bash' ? vscode.l10n.t('Git Bash on Windows') : vscode.l10n.t('Windows PowerShell'),
+    shell,
+  }));
+  const picked = await vscode.window.showQuickPick(items, {
+    placeHolder: vscode.l10n.t('Select the shell that runs your hook'),
+  });
+  return picked?.shell;
 }
