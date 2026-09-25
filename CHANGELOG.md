@@ -3,6 +3,12 @@
 This file records all notable changes to this extension.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.2]
+
+### Changed
+
+- Updated the Marketplace categories and keywords so that the extension is easier to find. The extension now also appears under **AI**.
+
 ## [0.1.1]
 
 ### Fixed
